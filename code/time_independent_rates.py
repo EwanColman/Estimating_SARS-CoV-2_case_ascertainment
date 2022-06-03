@@ -74,6 +74,7 @@ time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
 start_date='23 August 2020'
 start_date=(datetime.strptime(str(start_date), '%d %B %Y')-time_zero).days
 
+end_date=(datetime.strptime('1 June 2022', '%d %B %Y')-time_zero).days
 # create thestart and end points for each variant
 variant_start={'Wild':0,
                'Alpha':(datetime.strptime('1 November 2020', '%d %B %Y')-time_zero).days,
@@ -85,8 +86,8 @@ variant_start={'Wild':0,
 variant_end={'Wild':(datetime.strptime('1 March 2021', '%d %B %Y')-time_zero).days,
                'Alpha':(datetime.strptime('1 November 2021', '%d %B %Y')-time_zero).days,
                'Delta':(datetime.strptime('9 January 2022', '%d %B %Y')-time_zero).days,
-               'BA.1':(datetime.strptime('1 June 2022', '%d %B %Y')-time_zero).days,
-               'BA.2':(datetime.strptime('1 June 2022', '%d %B %Y')-time_zero).days
+               'BA.1':end_date,
+               'BA.2':end_date
                }
 
 
@@ -296,21 +297,8 @@ for region in population_of:
     # get surveillance data for the region    
     df=pd.read_csv('../raw_data/Surveillance/'+region+'_surveillance_1k.csv',sep=',')
     
-    # add a new column with header days since Mar1
-    time_in_days=[]
-    
-    date=df['Date'].tolist()
-    
-    while date:
-        d=date.pop(0)
-        #print(d)
-        day_numerical=(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days
-        # minus 4 to make it a mid-week estimate
-        if region in ['Wales','Scotland','NorthernIreland']:
-            time_in_days.append(day_numerical)
-        else:
-            time_in_days.append(day_numerical)
-    
+    # add a new column with header days since Mar1 
+    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in df['Date'].tolist()]
     # add it to the dataframe
     df['days_since_march1']=time_in_days
     # needs to be in order earliest to latest
@@ -332,7 +320,21 @@ for region in population_of:
     cases=df['cases'].tolist()
     #time_in_days=df['Days_since_March1'].tolist()
     SGTF_proportion=df['SGTF_proportion'].tolist()
+    # complete the list
+    SGTF_proportion=SGTF_proportion+[SGTF_proportion[-1] for i in range(end_date-len(SGTF_proportion))]
+    print(len(SGTF_proportion))
     
+    ### get all the proportions for each variant across time
+    variant_proportion={}
+    for variant in ['Wild','Delta','BA.2']:
+        variant_proportion[variant]=[0 for i in range(0,variant_start[variant])]\
+                                +[1-SGTF_proportion[t] for t in range(variant_start[variant],variant_end[variant])]\
+                                +[0 for i in range(variant_end[variant],len(SGTF_proportion))]
+                                    # for the S negatives
+    for variant in ['Alpha','BA.1']:
+        variant_proportion[variant]=[0 for i in range(0,variant_start[variant])]\
+                                +[SGTF_proportion[t] for t in range(variant_start[variant],variant_end[variant])]\
+                                +[0 for i in range(variant_end[variant],len(SGTF_proportion))]
     
     ############## COPIED IN ###################
     C=cases+[0 for i in range(100)]
@@ -345,6 +347,7 @@ for region in population_of:
         Z=(1-LFD_proportion[t])*Z_pcr+LFD_proportion[t]*Z_lfd
         theta_times_I.append(Z)
 
+    # cases broken down into variants
     new_cases={}
     # need to repeaat for each variant
     for variant in variant_proportion:

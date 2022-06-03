@@ -44,6 +44,7 @@ SGTF_proportion=df['SGTF_proportion'].tolist()
 LFD_proportion=df['LFD_proportion'].tolist()
 
 
+
 fig = plt.figure(figsize=(12,16))
 gs = fig.add_gridspec(8, 3, height_ratios=[3,2,2,1,2,2,2,2])
 plt.subplots_adjust(hspace=0,wspace=0)
@@ -88,9 +89,6 @@ for j in range(testable_period):
     # sum([C[t+k] for k in range(3,10)])*
     denominator=sum([R[i]*S_lfd[i] for i in range(testable_period)])
     P_lfd.append(numerator/denominator) 
-
-### Make a latex table ####
-table='\\begin{tabular}{l|cccc} \n \\toprule \n Group & $\\theta_{o}$ & $\\theta_{A}$ \\\ \n \\midrule \n'
 
 ######## AGES ####################################
 dates_words=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in dates]
@@ -166,17 +164,7 @@ for age in name_of:
     df=pd.read_csv('../raw_data/Surveillance/'+age+'_surveillance.csv',sep=',')
     
     # add a new column with header days since Mar1
-    time_in_days=[]
-    
-    date=df['Date'].tolist()
-    
-    while date:
-        d=date.pop(0)
-        #print(d)
-        day_numerical=(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days
-        # minus 7 to get midpoint of the 2-week estimate
-        time_in_days.append(day_numerical)
-    
+    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in df['Date'].tolist()]
     # add it to the dataframe
     df['days_since_march1']=time_in_days
     # needs to be in order earliest to latest
@@ -188,59 +176,8 @@ for age in name_of:
     rate=df.reset_index()
     ONS_day=df['days_since_march1'].tolist()
     #date=df['Date'].tolist()
-    ###### CASES ##########
-    df=pd.read_csv('../raw_data/Diagnostic/'+age+'_cases.csv')
 
-    # add a new column with header days since Mar1
-    time_in_days=[]
-    date=df['date'].tolist()
-    while date:
-        d=date.pop(0)
-        #print(d)
-        day_numerical=(datetime.strptime(str(d), '%Y-%m-%d')-time_zero).days
-        time_in_days.append(day_numerical)
-    
-    df['days_since_march1']=time_in_days
-    df=df.sort_values('days_since_march1',ascending=True)
-    df=df[df['days_since_march1']>=0]
-    cases=df['cases'].tolist()
-    case_time_in_days=df['days_since_march1'].tolist()
-    dates=df['date'].tolist()
-    
-    C=cases+[0 for i in range(100)]
-        
-    theta_times_I=[]
-    for t in range(len(cases)):
-        Z_pcr=sum([C[t+j]*P_pcr[j-delta] for j in range(delta,testable_period)])
-        Z_lfd=sum([C[t+j]*P_lfd[j] for j in range(testable_period)])
-        
-        Z=(1-LFD_proportion[t])*Z_pcr+LFD_proportion[t]*Z_lfd
-        theta_times_I.append(Z)
-        
-        # set a list for normal cases, and an alternative one for variant cases
-    new_cases=[]
-    nv_cases=[]
-    proportion=[]
-    # estimate the number of test-positives
-    delta_index=0
-    
-    for t in ONS_day:
-        # j is the time since exposure
-        estimate=sum([theta_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
-        new_cases.append(estimate)
-
-        # to use the variant proportion
-        proportion.append(SGTF_proportion[t])
-        # get the time that we switch from wild to delta
-        if t<Mar1:
-            # this will be the latest t which is before March 1st 2021
-            delta_index=delta_index+1
-    
-    
-    
-    ## loop over the three lines
-    reporting_multiplier={'Lower':[],'Upper':[],'Rate':[]}
-    
+ 
     #for interval in reporting_multiplier:
     
     interval='Rate'
@@ -250,20 +187,8 @@ for age in name_of:
     ax.scatter(ONS_day,rate[interval],s=10,color='k',marker='^',label=leg2)
     ax.fill_between(ONS_day,rate['Lower'],rate['Upper'],color='k',linewidth=0,alpha=0.1,label=leg1) 
    
-    # get the multiplier from the saved file
-   
-    # take the value with the smallest error
 
-    #x=[x1 for i in range(delta_index)]+[x3 for i in range(delta_index,len(new_ONS))]
-                      
-    #adjusted_cases=[x[i]*new_cases[i]*(1-proportion[i])+x2*new_cases[i]*proportion[i] for i in range(len(new_ONS))]
-
-    print(rate_df['Wild_'+interval][age])
-    
-    adjusted_cases=[sum(new_cases[variant][i]*100/rate_df[variant+'_'+interval][age] for variant in variants) for i in range(len(new_ONS))]
-
-
-    ax.scatter(ONS_day,[100*c/population_of[age] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b',label=leg3)
+    #ax.scatter(ONS_day,[100*c/population_of[age] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b',label=leg3)
     # add the result to the plot
     #ax.text(100,3,'$\\theta_{o}='+str(round(100/x1))+'$%, $\\theta_{A}='+str(round(100/x2))+'$%, $\\theta_{\\Delta}='+str(round(100/x3))+'$%',size=fs)
     #table=table+' & $'+str(round(100/x1))+'$ & $'+str(round(100/x2))+'$ \\\ \n'
@@ -348,20 +273,7 @@ for region in population_of:
     df=pd.read_csv('../raw_data/Surveillance/'+region+'_surveillance_1k.csv',sep=',')
     
     # add a new column with header days since Mar1
-    time_in_days=[]
-    
-    date=df['Date'].tolist()
-    
-    while date:
-        d=date.pop(0)
-        #print(d)
-        day_numerical=(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days
-        # minus 4 to make it a mid-week estimate
-        if region in ['Wales','Scotland','NorthernIreland']:
-            time_in_days.append(day_numerical)
-        else:
-            time_in_days.append(day_numerical)
-    
+    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in df['Date'].tolist()]
     # add it to the dataframe
     df['days_since_march1']=time_in_days
     # needs to be in order earliest to latest
@@ -377,43 +289,7 @@ for region in population_of:
     ONS_day=df['days_since_march1'].tolist()
     date=df['Date'].tolist()
     
-    ###### CASES ##########
-    df=pd.read_csv('../processed_data/'+region+'_daily_data.csv')
-    #print(df.head())
-    #print(len(df))
-    cases=df['cases'].tolist()
-    #time_in_days=df['Days_since_March1'].tolist()
-    SGTF_proportion=df['SGTF_proportion'].tolist()
     
-    ############## COPIED IN ###################
-    C=cases+[0 for i in range(100)]
-
-    theta_times_I=[]
-    for t in range(len(cases)):
-        Z_pcr=sum([C[t+j]*P_pcr[j-delta] for j in range(delta,testable_period)])
-        Z_lfd=sum([C[t+j]*P_lfd[j] for j in range(testable_period)])
-        
-        Z=(1-LFD_proportion[t])*Z_pcr+LFD_proportion[t]*Z_lfd
-        theta_times_I.append(Z)
-        
-        # set a list for normal cases, and an alternative one for variant cases
-    new_cases=[]
-    nv_cases=[]
-    proportion=[]
-    
-    delta_index=0
-    # estimate the number of test-positives
-    for t in ONS_day:
-        # j is the time since exposure
-        estimate=sum([theta_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
-        new_cases.append(estimate)
-  
-        # to use the variant proportion
-        proportion.append(SGTF_proportion[t])
-        # get the time that we switch from wild to delta
-        if t<Mar1:
-            # this will be the latest t which is before March 1st 2021
-            delta_index=delta_index+1
     
     new_ONS=[population_of[region]*r/100 for r in rate]
     ############# END ############
@@ -422,11 +298,7 @@ for region in population_of:
     plt.fill_between(ONS_day,lower,upper,color='k',linewidth=0,alpha=0.1) 
     plt.scatter(ONS_day,rate,s=10,color='k',marker='^')
 
-    
-    # get the multiplier from the saved file
-    adjusted_cases=[sum(new_cases[variant][i]*100/rate_df[variant+'_'+interval][region] for variant in variants) for i in range(len(new_ONS))]
-
-    plt.scatter(ONS_day,[100*c/population_of[region] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b')
+    #plt.scatter(ONS_day,[100*c/population_of[region] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b')
     # add the result to the plot
     #ax.text(100,3,'$\\theta_{o}='+str(round(100/x1))+'$%, $\\theta_{A}='+str(round(100/x2))+'$%, $\\theta_{\\Delta}='+str(round(100/x3))+'$%',size=fs)
     # add to the latex output table 
@@ -437,6 +309,3 @@ for region in population_of:
     #     print(adjusted_cases)
         
 plt.savefig('../figures/supplementary_figure_time_independant.pdf',format='pdf',dpi=300,bbox_inches='tight')
-
-table=table+'\\bottomrule \n \end{tabular} \n'
-#print(table)

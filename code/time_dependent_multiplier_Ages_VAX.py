@@ -60,11 +60,11 @@ def f(theta):
 
 # get variant prop for ages
 df=pd.read_csv('../processed_data/England_daily_data.csv')
-variant_proportion=df['NV_proportion'].tolist()
+SGTF_proportion=df['SGTF_proportion'].tolist()
 LFD_proportion=df['LFD_proportion'].tolist()
 
 folder='../raw_data/Surveillance'
-max_day=635
+max_day=825
 delta=1
 fs=15
 trunc=10
@@ -277,6 +277,8 @@ for age in population_of:
     # add 0s from march 1
     vaxed=[0 for i in range(min(df['days_since_march1']))]
     vaxed=vaxed+df['vaccinated'].tolist()
+    print(vaxed)
+    
     # calculate as a proportion of pop
     vax_pop=[sum(vaxed[:i])/population_of[age] for i in range(len(vaxed))]
     # fill to the end
@@ -394,11 +396,8 @@ for age in population_of:
     output_data['reporting_multiplier_'+age]=reporting_multiplier
     #output_data['testing_multiplier_'+age]=testing_multiplier
     output_data['incidence_'+age]=I
-    output_data['variant_proportion_'+age]=variant_proportion
-    output_data['sgtf_proportion_'+age]=variant_proportion
-    
-    # find the daily incidence 
-    
+    output_data['sgtf_proportion_'+age]=SGTF_proportion
+
 
 output_data['date']=days
 

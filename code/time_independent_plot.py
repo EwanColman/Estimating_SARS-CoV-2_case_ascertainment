@@ -10,14 +10,14 @@ import scipy.optimize as optimize
 
 
 ### read in the multipliers
-rate_df=pd.read_csv('../output/time_independent_rates_(with_delta).csv',index_col='Group')
+rate_df=pd.read_csv('../output/time_independent_rates.csv',index_col='Group')
 print(rate_df.head())
 
 
 delta=1
 
 stretch=1
-max_day=630#380
+max_day=825
 
 fs=12
 
@@ -40,7 +40,7 @@ dates_words2=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in date
 
 # get variant prop for ages
 df=pd.read_csv('../processed_data/England_daily_data.csv')
-variant_proportion=df['NV_proportion'].tolist()
+SGTF_proportion=df['SGTF_proportion'].tolist()
 LFD_proportion=df['LFD_proportion'].tolist()
 
 
@@ -112,10 +112,12 @@ name_of={'02_10':'2 to 10',
          '50_69':'50 to 69',
          '70+':'70+'}
 
+variants=['Wild','Alpha','Delta','BA.1','BA.2']
+
 i=0
 for age in name_of:
     print(age)
-    table=table+name_of[age]+' '
+    #table=table+name_of[age]+' '
 #    n=i % 3
 #    m=1+int(n/3)
     
@@ -228,7 +230,7 @@ for age in name_of:
         new_cases.append(estimate)
 
         # to use the variant proportion
-        proportion.append(variant_proportion[t])
+        proportion.append(SGTF_proportion[t])
         # get the time that we switch from wild to delta
         if t<Mar1:
             # this will be the latest t which is before March 1st 2021
@@ -248,22 +250,23 @@ for age in name_of:
     ax.scatter(ONS_day,rate[interval],s=10,color='k',marker='^',label=leg2)
     ax.fill_between(ONS_day,rate['Lower'],rate['Upper'],color='k',linewidth=0,alpha=0.1,label=leg1) 
    
-   # get the multiplier from the saved file
+    # get the multiplier from the saved file
    
     # take the value with the smallest error
-    
-    x1=100/rate_df['Wild_'+interval][age]
-    x2=100/rate_df['Alpha_'+interval][age]
-    x3=100/rate_df['Delta_'+interval][age]
-    
-    x=[x1 for i in range(delta_index)]+[x3 for i in range(delta_index,len(new_ONS))]
+
+    #x=[x1 for i in range(delta_index)]+[x3 for i in range(delta_index,len(new_ONS))]
                       
-    adjusted_cases=[x[i]*new_cases[i]*(1-proportion[i])+x2*new_cases[i]*proportion[i] for i in range(len(new_ONS))]
+    #adjusted_cases=[x[i]*new_cases[i]*(1-proportion[i])+x2*new_cases[i]*proportion[i] for i in range(len(new_ONS))]
+
+    print(rate_df['Wild_'+interval][age])
+    
+    adjusted_cases=[sum(new_cases[variant][i]*100/rate_df[variant+'_'+interval][age] for variant in variants) for i in range(len(new_ONS))]
+
 
     ax.scatter(ONS_day,[100*c/population_of[age] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b',label=leg3)
     # add the result to the plot
     #ax.text(100,3,'$\\theta_{o}='+str(round(100/x1))+'$%, $\\theta_{A}='+str(round(100/x2))+'$%, $\\theta_{\\Delta}='+str(round(100/x3))+'$%',size=fs)
-    table=table+' & $'+str(round(100/x1))+'$ & $'+str(round(100/x2))+'$ \\\ \n'
+    #table=table+' & $'+str(round(100/x1))+'$ & $'+str(round(100/x2))+'$ \\\ \n'
 
 ax.legend(loc=2,prop={'size':fs},frameon=False,bbox_to_anchor=(1.2, 0.5))
 
@@ -312,7 +315,7 @@ m=0
 i=0
 for region in population_of:
     print(region)
-    table=table+name_of[region]+' '
+    #table=table+name_of[region]+' '
     #ax = fig.add_subplot(gs[11-2*int(i/3):13-2*int(i/3),(4*(i%3)):(4*(i%3)+4)])
     ax = fig.add_subplot(gs[7-int(i/3),i%3])
     #ax=fig.add_subplot(3,3,i) 
@@ -380,7 +383,7 @@ for region in population_of:
     #print(len(df))
     cases=df['cases'].tolist()
     #time_in_days=df['Days_since_March1'].tolist()
-    variant_proportion=df['NV_proportion'].tolist()
+    SGTF_proportion=df['SGTF_proportion'].tolist()
     
     ############## COPIED IN ###################
     C=cases+[0 for i in range(100)]
@@ -406,7 +409,7 @@ for region in population_of:
         new_cases.append(estimate)
   
         # to use the variant proportion
-        proportion.append(variant_proportion[t])
+        proportion.append(SGTF_proportion[t])
         # get the time that we switch from wild to delta
         if t<Mar1:
             # this will be the latest t which is before March 1st 2021
@@ -421,21 +424,13 @@ for region in population_of:
 
     
     # get the multiplier from the saved file
-   
-    # take the value with the smallest error
-    x1=100/rate_df['Wild_'+interval][region]
-    x2=100/rate_df['Alpha_'+interval][region]
-    x3=100/rate_df['Delta_'+interval][region]
-    
-    x=[x1 for i in range(delta_index)]+[x3 for i in range(delta_index,len(new_ONS))]
-                      
-    adjusted_cases=[x[i]*new_cases[i]*(1-proportion[i])+x2*new_cases[i]*proportion[i] for i in range(len(new_ONS))]
+    adjusted_cases=[sum(new_cases[variant][i]*100/rate_df[variant+'_'+interval][region] for variant in variants) for i in range(len(new_ONS))]
 
     plt.scatter(ONS_day,[100*c/population_of[region] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b')
     # add the result to the plot
     #ax.text(100,3,'$\\theta_{o}='+str(round(100/x1))+'$%, $\\theta_{A}='+str(round(100/x2))+'$%, $\\theta_{\\Delta}='+str(round(100/x3))+'$%',size=fs)
     # add to the latex output table 
-    table=table+' & $'+str(round(100/x1))+'$ & $'+str(round(100/x2))+'$ \\\ \n'
+    #table=table+' & $'+str(round(100/x1))+'$ & $'+str(round(100/x2))+'$ \\\ \n'
 
     # if region=='NorthEast':
     #     print(best_x)

@@ -9,7 +9,6 @@ folder='../raw_data/Regions'
 #measure days from this day
 time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
 
-
 ### Regions ###
 columns={'NorthEast':'B:D',
       'NorthWest':'I:K',
@@ -21,7 +20,7 @@ columns={'NorthEast':'B:D',
       'SouthEast':'AY:BA',
       'SouthWest':'BF:BH'}
 
-rows=[5,46]
+rows=[6,60]
 column_names=['Time']
 df=pd.read_excel('../raw_data/raw_surveillance/England.xlsx',sheet_name='1k',usecols='A',names=column_names,skiprows=rows[0],nrows=rows[1]-rows[0]-1).replace('-',0)
 
@@ -54,7 +53,7 @@ columns={'02_10':'B:D',
          '70+':'AF:AH'}
 
 
-rows=[5,46]
+rows=[6,60]
 column_names=['Time']
 df=pd.read_excel('../raw_data/raw_surveillance/England.xlsx',sheet_name='1j',usecols='A',names=column_names,skiprows=rows[0],nrows=rows[1]-rows[0]-1).replace('-',0)
    
@@ -81,9 +80,9 @@ for age in columns:
 ######## Nations #########
 
 
-rows={'NorthernIreland':[12,67],
-      'Scotland':[11,64],
-      'Wales':[7,74]
+rows={'NorthernIreland':[12,95],
+      'Scotland':[11,92],
+      'Wales':[7,102]
       }
 
 for nation in rows:

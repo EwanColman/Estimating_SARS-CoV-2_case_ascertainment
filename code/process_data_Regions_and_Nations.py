@@ -43,25 +43,25 @@ variant_proportion={}
 
 start_date='1 November 2020'
 start_day=(datetime.strptime(str(start_date), '%d %B %Y')-time_zero).days
-end_date='1 January 2022'
+end_date='1 June 2022'
 end_day=(datetime.strptime(str(end_date), '%d %B %Y')-time_zero).days
 Sep20='20 September 2020'
 Sep20=(datetime.strptime(str(Sep20), '%d %B %Y')-time_zero).days
 
 
 
-rows={'NorthEast':[7,76],
-      'NorthWest':[79,160],
-      'YorkshireandTheHumber':[163,243],
-      'EastMidlands':[246,324],
-      'WestMidlands':[327,401],
-      'EastofEngland':[404,479],
-      'London':[482,560],
-      'SouthEast':[563,642],
-      'SouthWest':[645,715],
-      'Wales':[177,241],
-      'NorthernIreland':[244,308],
-      'Scotland':[311,372]}
+rows={'NorthEast':[7,102],
+      'NorthWest':[104,212],
+      'YorkshireandTheHumber':[214,321],
+      'EastMidlands':[323,428],
+      'WestMidlands':[430,531],
+      'EastofEngland':[533,635],
+      'London':[637,742],
+      'SouthEast':[744,850],
+      'SouthWest':[852,949],
+      'Wales':[228,319],
+      'NorthernIreland':[321,412],
+      'Scotland':[414,502]}
 
 #n=32
 for region in regions+nations:
@@ -103,7 +103,7 @@ for region in regions+nations:
             proportion[i]=proportion[i-1]
     
     
-    variant_proportion=[0 for i in range(start_day)]
+    SGTF_proportion=[0 for i in range(start_day)]
     
     t=start_day
     p=0
@@ -120,11 +120,11 @@ for region in regions+nations:
 
         for i in range(delta_t):
             prop=prop+delta_p/delta_t           
-            variant_proportion.append(prop)
+            SGTF_proportion.append(prop)
  
             
-    while len(variant_proportion)<end_day:
-        variant_proportion.append(prop)                                                         
+    while len(SGTF_proportion)<end_day:
+        SGTF_proportion.append(prop)                                                         
 
       
 
@@ -279,7 +279,7 @@ for region in regions+nations:
                         'cases':cases[0:end],
                         #'PCR_tests':PCR_tests[0:end_day],
                         #'LFD_tests':LFD_tests[0:end_day],
-                        'NV_proportion':variant_proportion[0:end],
+                        'SGTF_proportion':SGTF_proportion[0:end],
                         'mean_CT':mean_CT[0:end],
                         'OR_only':OR_only[0:end],
                         'vaccinated':vax_prop[0:end]})

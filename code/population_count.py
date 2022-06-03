@@ -1,12 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 26 11:13:38 2021
-
-@author: ewanc
-"""
-
 import pandas as pd
-
 groups=['00_01','02_10','11_15','16_24','25_34','35_49','50_69']
 
 

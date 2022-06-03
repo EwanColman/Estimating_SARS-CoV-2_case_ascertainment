@@ -8,7 +8,7 @@ Created on Tue Oct  5 17:49:58 2021
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df=pd.read_csv('../output/time_independent_rates_(with_delta).csv')
+df=pd.read_csv('../output/time_independent_rates_(hill_climb).csv')
 
 print(df.head())
 
@@ -56,9 +56,9 @@ plt.subplots_adjust(hspace=0.05,wspace=0)
 for i,row in df.iloc[0:7].iterrows():
     
     if i==0:
-        lab1,lab2,lab3='Wild type','Alpha','Delta'
+        lab1,lab2,lab3,lab4,lab5='Wild type','Alpha','Delta','Omicron BA.1','Omicron BA.2'
     else:
-        lab1,lab2,lab3=None,None,None
+        lab1,lab2,lab3,lab4,lab5=None,None,None,None,None
         
     ax = fig.add_subplot(gs[0,0])
     ax.tick_params(length=0)
@@ -71,6 +71,13 @@ for i,row in df.iloc[0:7].iterrows():
     
     plt.plot([row['Delta_Lower'],row['Delta_Upper']],[7-i-offset,7-i-offset],c='r',linewidth=0.5,zorder=0)
     plt.scatter([row['Delta_Rate']],[7-i-offset],color='r',facecolors='w',marker='^',label=lab3,zorder=2)
+
+    plt.plot([row['BA.1_Lower'],row['BA.1_Upper']],[7-i-offset,7-i-offset],c='g',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.1_Rate']],[7-i-offset],color='g',facecolors='w',marker='v',label=lab4,zorder=2)
+    
+    plt.plot([row['BA.2_Lower'],row['BA.2_Upper']],[7-i-offset,7-i-offset],c='m',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.2_Rate']],[7-i-offset],color='m',facecolors='w',marker='<',label=lab5,zorder=2)
+    
     
     
     
@@ -99,6 +106,12 @@ for i,row in df.iloc[7:19].iterrows():
     
     plt.plot([row['Delta_Lower'],row['Delta_Upper']],[19-i-offset,19-i-offset],c='r',linewidth=0.5,zorder=0)
     plt.scatter([row['Delta_Rate']],[19-i-offset],color='r',facecolors='w',marker='^',label=lab3,zorder=2)
+
+    plt.plot([row['BA.1_Lower'],row['BA.1_Upper']],[19-i-offset,19-i-offset],c='g',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.1_Rate']],[19-i-offset],color='g',facecolors='w',marker='v',label=lab4,zorder=2)
+    
+    plt.plot([row['BA.2_Lower'],row['BA.2_Upper']],[19-i-offset,19-i-offset],c='m',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.2_Rate']],[19-i-offset],color='m',facecolors='w',marker='<',label=lab5,zorder=2)
     
     
     if not i==18:

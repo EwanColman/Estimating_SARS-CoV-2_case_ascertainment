@@ -63,7 +63,7 @@ def f(theta):
 
 folder='../raw_data/Surveillance'
 cmap = plt.cm.get_cmap('winter')
-max_day=635
+max_day=825
 delta=1
 trunc=10
 efficacy=0.56
@@ -262,7 +262,7 @@ for region in population_of:
     #  drop last one (remove this is not needed)
     cases=df['cases'].tolist()
     #time_in_days=df['Days_since_March1'].tolist()
-    variant_proportion=df['NV_proportion'].tolist()
+    SGTF_proportion=df['SGTF_proportion'].tolist()
     # vaccination
     vax_pop=df['vaccinated'].tolist()
     ### convert to proportion of infections ###
@@ -294,9 +294,7 @@ for region in population_of:
         # j is the time since exposure
         estimate_unvax=sum([theta_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
         estimate_vax=sum([theta_times_I[t-j]*S_pcr_vax[j] for j in range(testable_period)])
-        estimate=(1-vax_proportion[t])*estimate_unvax+vax_proportion[t]*estimate_vax
-        
-        
+        estimate=(1-vax_proportion[t])*estimate_unvax+vax_proportion[t]*estimate_vax 
         
         new_cases.append(estimate)
     
@@ -308,7 +306,8 @@ for region in population_of:
             else:
                 first_guess[interval].append(100)
     
-    print(len(cases))
+    print(len(first_guess['Rate']))
+    
     weeks=int(len(cases)/7)
     #### calculate multiplier for every time point ##########
     reporting_multiplier={'Lower':[],'Upper':[],'Rate':[]}
@@ -362,7 +361,7 @@ for region in population_of:
     #output_data['variant_proportion_'+region]=new_variant_proportion
     output_data['incidence_'+region]=I
     output_data['date_'+region]=days
-    output_data['sgtf_proportion_'+region]=variant_proportion
+    output_data['sgtf_proportion_'+region]=SGTF_proportion
     
     
 pk.dump(output_data,open('../pickles/reporting_rates_(region)_VAX.p','wb'))

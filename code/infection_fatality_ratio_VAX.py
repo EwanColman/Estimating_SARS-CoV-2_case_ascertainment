@@ -13,7 +13,7 @@ import pandas as pd
 from datetime import datetime
 time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
 
-lag=20
+lag=21
 name_of={#'02_10':'2 to 10',
          #'11_15':'11 to 15',
          #'16_24':'16 to 24',
@@ -21,43 +21,23 @@ name_of={#'02_10':'2 to 10',
          '35_49':'35 to 49',
          '50_69':'50 to 69',
          '70+':'70+'}
+max_day=800
+fs=12
+start_date='1 August 2020'
+end_date='15 April 2022'
 
-##### Process the ONS data #################
-df=pd.read_excel('../raw_data/Death/ONS_Deaths.xlsx',
-                 sheet_name='Table 1',
-                 skiprows=4)
-
-
-
-print(df.head())
-
-df=df[df['Cause']=='Due to COVID-19']
-# count the number of months
-
-months=len(df)
-print(df.columns)
-
-monthly_deaths={}
-for age in name_of:
-    
-    if age=='70+':
-        column_names=[i for i in range(70,105)]+['105 and over']
-    else:
-        column_names=[i for i in range(int(age[0:2]),1+int(age[3:5]))]
-    
-    # store the list 0 index corresponds to march 2020
-    # index= months since march 2020
-    monthly_deaths[age]=df[column_names].sum(axis=1).tolist()
-    print(age)
-    print(monthly_deaths[age][-1])
-    print()
-##############################################
+#measure days from this day
+time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
+start_date=(datetime.strptime(start_date, '%d %B %Y')-time_zero).days
+end_date=(datetime.strptime(end_date, '%d %B %Y')-time_zero).days
+###########################################
+months=26
 
 # get the range of days corresponding to each month
 day_range={}
 
 first_day_of_month=0
-for month in range(1,months):
+for month in range(1,months+1):
     # find what month it is
     m=1+(2+month)%12
     if m>9:
@@ -71,28 +51,20 @@ for month in range(1,months):
 
     day_range[month-1]=(first_day_of_month-lag,days_since_March1-lag)
     first_day_of_month=days_since_March1
-    
+
 for month in range(months-1):
     print(month,day_range[month])
 
 
 
-max_day=600
-fs=12
-start_date='1 August 2020'
-end_date='15 September 2021'
-
-#measure days from this day
-time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
-start_date=(datetime.strptime(start_date, '%d %B %Y')-time_zero).days
-end_date=(datetime.strptime(end_date, '%d %B %Y')-time_zero).days
-###########################################
-
 # Get list of dates for axes 
-dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]+['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,10)]
+dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]\
+    +['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,13)]\
+    +['01/0'+str(i)+'/2022' for i in range(1,4)]    
 dates_words=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in dates]
 dates_numerical=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in dates]
   
+
 
 fig = plt.figure(figsize=(12,8))
 gs = fig.add_gridspec(2,2)
@@ -141,7 +113,7 @@ date=date[start:end]
 top={ '25_34':0.05,
          '35_49':0.15,
          '50_69':1,
-         '70+':10}
+         '70+':11}
 
 i=0
 for age in name_of:
@@ -171,6 +143,28 @@ for age in name_of:
         #plt.text(100,200,'A',size=20)
           
     ##### DEATHS ##########
+    ####### add dashboard deaths ############
+    df=pd.read_csv('../raw_data/Death/'+age+'_deaths.csv')
+    # add a new column with header days since Mar1
+    time_in_days=[]
+    date=df['date'].tolist()
+    while date:
+        d=date.pop(0)
+        #print(d)
+        day_numerical=(datetime.strptime(str(d), '%Y-%m-%d')-time_zero).days
+        time_in_days.append(day_numerical)
+        
+    
+    df['days_since_march1']=time_in_days
+    df=df.sort_values('days_since_march1',ascending=True)
+    df=df[df['days_since_march1']>=0]
+    deaths=df['deaths'].tolist()
+    death_time_in_days=df['days_since_march1'].tolist()
+    dates=df['date'].tolist()
+    
+    monthly_deaths2=[None]+[sum(deaths[day_range[m][0]+lag:day_range[m][1]+lag]) for m in range(1,months)]
+    #####################
+    
         
     if age=='35_49':
         leg1='Original IFR'
@@ -187,7 +181,12 @@ for age in name_of:
     
     # aggregate to months 
     monthly_infections=[population_of[age]*sum(I[day_range[month][0]:day_range[month][1]])/100 for month in range(months-1)]
-    IFR=[100*monthly_deaths[age][i]/monthly_infections[i] for i in range(5,months-1)]
+    #ONS
+    #IFR=[100*monthly_deaths[age][i]/monthly_infections[i] for i in range(5,months-1)]
+    #28days
+    IFR=[100*monthly_deaths2[i]/monthly_infections[i] for i in range(5,months-1)]
+    
+    
     
     
     plt.plot([day_range[m][1]+lag for m in range(5,months-1)],IFR,marker='o',markersize=2,color='k',linewidth=1,zorder=1,label=leg1)
@@ -199,7 +198,10 @@ for age in name_of:
     
     # aggregate to months 
     monthly_infections=[population_of[age]*sum(I[day_range[month][0]:day_range[month][1]])/100 for month in range(months-1)]
-    IFR_vax=[100*monthly_deaths[age][i]/monthly_infections[i] for i in range(5,months-1)]
+    #ONS
+    #IFR_vax=[100*monthly_deaths[age][i]/monthly_infections[i] for i in range(5,months-1)]
+    #28days
+    IFR_vax=[100*monthly_deaths2[i]/monthly_infections[i] for i in range(5,months-1)]
     
     
     plt.plot([day_range[m][1]+lag for m in range(5,months-1)],IFR_vax,color='k',linewidth=0.5,zorder=2,label=leg1_vax)

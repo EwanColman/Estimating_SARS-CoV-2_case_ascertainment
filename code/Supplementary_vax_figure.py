@@ -13,10 +13,10 @@ import pandas as pd
 from datetime import datetime
 
 
-max_day=635
+max_day=825
 fs=12
 start_date='1 August 2020'
-end_date='11 November 2021'
+end_date='1 June 2022'
 
 #measure days from this day
 time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
@@ -25,7 +25,10 @@ end_date=(datetime.strptime(end_date, '%d %B %Y')-time_zero).days
 ###########################################
 
 # Get list of dates for axes 
-dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]+['01/0'+str(i)+'/2021' for i in range(1,10)]
+dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]
+dates=dates+['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,13)]
+dates=dates+['01/0'+str(i)+'/2022' for i in range(1,5)]
+
 dates_words=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in dates]
 dates_numerical=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in dates]
   
@@ -105,7 +108,7 @@ for age in name_of:
     reporting_multiplier=data['reporting_multiplier_'+age]
     reporting_multiplier_vax=vax_data['reporting_multiplier_'+age]
     #testing_multiplier=data['testing_multiplier_'+age]
-    new_variant_proportion=data['variant_proportion_'+age]
+    new_variant_proportion=data['sgtf_proportion_'+age]
     sgtf_proportion=data['sgtf_proportion_'+age]
     #plt.scatter(date,reporting_multiplier,s=10,facecolors='#006666')
     

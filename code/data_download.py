@@ -138,6 +138,7 @@ for age in output:
 url='https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv'
 
 df=pd.read_csv(url)
+print(df.head())
 dates=list(set(df['date'].tolist()))
 
 output={}
@@ -169,6 +170,7 @@ for group in groups:
             output[age]=[output[age][i]+round((overlap/5)*deaths[i]) for i in range(len(dates))]
     
 for group in last_groups:
+    group_df=df[df['age']==group]
     deaths=group_df['deaths'].tolist()
     output['70+']=[output['70+'][i]+deaths[i] for i in range(len(dates))]
 
@@ -200,8 +202,8 @@ for age in age_categories:
 vaccinated['70+']=[0 for i in range(len(dates))]
 
 
-ages_of={'02_10':[],
-         '11_15':[],
+ages_of={'02_10':['05_11'],
+         '11_15':['12_15'],
          '16_24':['16_17','18_24'],
          '25_34':['25_29','30_34'],
          '35_49':['35_39','40_44','45_49'],

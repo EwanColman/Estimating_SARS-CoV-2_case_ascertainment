@@ -7,60 +7,64 @@ from scipy import stats
 import pickle as pk
 # for correlations use the last T points
 
+import scipy.optimize as optimize
 
-def get_incidence(ONS_day,theta_times_I,reporting_multiplier):
+def interpolate(X_series,Y_series):
+    
+    x_series=X_series.copy()
+    y_series=Y_series.copy()
+    
     #### Interpolation
-    
     # et te first day that is not None
-    
-    start_day=ONS_day[0]
+    first_x=x_series[0]
     # linear interpolation to get all days
-    daily_theta=[6 for i in range(start_day)]
+    y_interpolated=[]
     
-    last_t=start_day
-    last_v=0
+    last_x=first_x
+    last_y=0
     
-    theta=reporting_multiplier[0]
-    if theta==None:
-        theta=0
-
-    time_in_days=ONS_day.copy()
-    r_m=reporting_multiplier.copy()
-    while time_in_days:
-        
-        
-        t=time_in_days.pop(0)
-        v=r_m.pop(0)
-        if v:
-            delta_t=t-last_t
-            delta_v=v-last_v
+    y_int=y_series[0]
+    
+    while x_series:
+        x=x_series.pop(0)
+        y=y_series.pop(0)
+        if y:
+            delta_x=x-last_x
+            delta_y=y-last_y
             #print(delta_p,delta_t)
-            for i in range(delta_t):
-                theta=theta+delta_v/delta_t        
+            for i in range(delta_x):
+                y_int=y_int+delta_y/delta_x        
                 #print(delta_p/delta_t)
-                daily_theta.append(theta)
+                y_interpolated.append(y_int)
                 
-            last_t=t
-            last_v=v  
-    # add the last bit
-    while len(daily_theta)<len(cases)+9:
-        daily_theta.append(theta)    
-    
-    # compute incidence
-    I=[]
-    for i in range(len(theta_times_I)):
-        I.append(100*theta_times_I[i]/daily_theta[i+9])
-    return I
+            last_x=x
+            last_y=y  
+   
+    return y_interpolated
+
+
+def f(theta):
+   
+    time=[i*7 for i in range(len(theta))]
+    daily_theta=[0 for i in range(time[0])]
+    daily_theta=daily_theta+interpolate(time,list(theta))
+    while len(daily_theta)<len(cases):
+        daily_theta.append(daily_theta[-1])
+
+    #print(len(daily_theta))
+    Z=sum([abs(population_of[age]*rate[interval][t]/100 - 100*sum([theta_times_I[ONS_day[t]-j]*S_pcr[j]/daily_theta[ONS_day[t]-j] for j in range(testable_period)])) for t in range(len(rate[interval]))])   
+
+    return Z
 
 
 
 # get variant prop for ages
 df=pd.read_csv('../processed_data/England_daily_data.csv')
-variant_proportion=df['NV_proportion'].tolist()
+SGTF_proportion=df['SGTF_proportion'].tolist()
 LFD_proportion=df['LFD_proportion'].tolist()
 
 folder='../raw_data/Surveillance'
-max_day=530
+max_day=825
 delta=1
 fs=15
 #measure days from this day
@@ -70,13 +74,13 @@ Sep1=(datetime.strptime(str(Sep1), '%d %B %Y')-time_zero).days
 
 # ONS opulation estimates
 # pop_df=pd.read_excel('ukmidyearestimates20192020ladcodes',sheet_name='MYE2 - Persons',skiprows=4)
-population_of={'02_10':6264662,#7527576,
-               '11_15':2664513,
-               '16_24':5860347,
-               '25_34':7567108,
-               '35_49':10864046,
-               '50_69':13688509,
-               '70+':8114862
+population_of={'02_10':6254603,
+               '11_15':3370248,
+               '16_24':5950637,
+               '25_34':7596145,
+               '35_49':10853151,
+               '50_69':13618246,
+               '70+':7679719
                }
 
 name_of={'02_10':'2 to 10',
@@ -109,11 +113,11 @@ for i in range(testable_period):
 # the value in position i is th probability of testing positive i days after infection
 #from https://www.medrxiv.org/content/10.1101/2020.11.24.20229948v1.full.pdf
 df=pd.read_csv('../raw_data/PCR_curve_summary.csv')
-S_pcr=[np.mean(df['median'].tolist()[i:i+10]) for i in range(0,300,10)]
+S_pcr=[np.mean(df['median'].tolist()[i:i+10]) for i in range(0,10*testable_period,10)]
 
 #S=S+[0 for i in range(30,testable_period)]
 df=pd.read_csv('../raw_data/LFD_curve_summary.csv')
-S_lfd=[np.mean(df['median'].tolist()[i:i+10]) for i in range(0,300,10)]
+S_lfd=[np.mean(df['median'].tolist()[i:i+10]) for i in range(0,10*testable_period,10)]
 
 
 # make the probability function as a list
@@ -155,20 +159,20 @@ m=0
 i=0
 print()
 for age in population_of:
-
+    print(age)
     
     i=i+1
 #    n=i % 3
 #    m=1+int(n/3)
     
     ax=fig.add_subplot(3,3,i) 
-    ax.text(100,85,'Age '+name_of[age])
+    ax.text(100,4,'Age '+name_of[age])
     ax.set_xlim([90,max_day])
-    ax.set_ylim([0,100])
-    if i%3==1:
-        ax.set_yticks([0,20,40,60])
-    else:
-        ax.set_yticks([])
+    ax.set_ylim([0,5])
+    #if i%3==1:
+    #    ax.set_yticks([0,20,40,60])
+    #else:
+    #    ax.set_yticks([])
         
     if i>4:
         ax.set_xticks(dates_numerical)
@@ -185,7 +189,7 @@ for age in population_of:
     
     #### SURVEILLANCE ########
     df=pd.read_csv(folder+'/'+age+'_surveillance.csv',sep=',')
-    print(df.head())
+   
     
     # add a new column with header days since Mar1
     time_in_days=[]
@@ -221,8 +225,7 @@ for age in population_of:
     
     ###### CASES ##########
     df=pd.read_csv('../raw_data/Diagnostic/'+age+'_cases.csv')
-    print(df.head())
-    print()
+    
     # add a new column with header days since Mar1
     time_in_days=[]
     date=df['date'].tolist()
@@ -245,81 +248,102 @@ for age in population_of:
     #time_in_days=df['Days_since_March1'].tolist()
     
     C=cases+[0 for i in range(100)]
-    
+      
     theta_times_I=[]
-    for t in range(len(cases)):
-        Z_pcr=sum([C[t+j]*P_pcr[j-delta] for j in range(delta,testable_period)])
-        Z_lfd=sum([C[t+j]*P_lfd[j] for j in range(testable_period)])
-        
-        Z=(1-LFD_proportion[t])*Z_pcr+LFD_proportion[t]*Z_lfd
-        theta_times_I.append(Z)
-    
-    psi_times_I=[]
     for t in range(len(cases)):
         Y_pcr=sum([C[t+j]*P_pcr[j-delta]*S_pcr[j] for j in range(delta,testable_period)])
         Y_lfd=sum([C[t+j]*P_lfd[j]*S_lfd[j] for j in range(testable_period)])
         Y=(1-LFD_proportion[t])*Y_pcr+LFD_proportion[t]*Y_lfd
-        psi_times_I.append(Y)
-    
+        theta_times_I.append(Y)
     
     
     new_cases=[]
-    new_cases_ts=[]
-    new_variant_proportion=[]
+
     # estimate the number of test-positives
     for t in ONS_day:#range(20,len(cases)):
-        # j is the time since exposure
-        estimate=sum([psi_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
-        #estimate=sum([exposures[t-j]*positive_probability[j] for j in range(20)])     
-        #cases_on_day[surveillance_day[t]]=estimate
-        new_cases.append(estimate)
-        
+       
         # do it again for test-seeking
         estimate=sum([theta_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
         #estimate=sum([exposures[t-j]*positive_probability[j] for j in range(20)])     
         #cases_on_day[surveillance_day[t]]=estimate
-        new_cases_ts.append(estimate)
-        new_variant_proportion.append(variant_proportion[t])
+        new_cases.append(estimate)
+        
     
     #### calculate multiplier for every time point ##########
     reporting_multiplier={'Lower':[],'Upper':[],'Rate':[]}
     #testing_multiplier=[]
-    
+      
+    first_guess={'Lower':[],'Upper':[],'Rate':[]}
     for j in range(len(new_cases)):
-        for interval in reporting_multiplier:
+        for interval in first_guess:
             if rate[interval][j]>0:
-                reporting_multiplier[interval].append(min(100,100*100*new_cases[j]/(population_of[age]*rate[interval][j])))
-    #        testing_multiplier.append(100*100*new_cases_ts[j]/(population_of[age]*rate[j]))
-     
+                first_guess[interval].append(min(100,100*100*new_cases[j]/(population_of[age]*rate[interval][j]))) 
             else:
-                reporting_multiplier[interval].append(100)
-    #        testing_multiplier.append(None)
+                first_guess[interval].append(100)
     
+    weeks=int(len(cases)/7)
+    #### calculate multiplier for every time point ##########
+    reporting_multiplier={'Lower':[],'Upper':[],'Rate':[]}
     
-    plt.scatter(ONS_day,reporting_multiplier['Rate'],s=10,facecolors='#006666')
-    plt.plot(ONS_day,reporting_multiplier['Lower'])
-    plt.plot(ONS_day,reporting_multiplier['Upper'])
-    
-    I=get_incidence(ONS_day,psi_times_I,reporting_multiplier['Rate'])
+    for interval in reporting_multiplier:
+        # initial guess has zeros at the start followed by the interpolated first estimate
+        initial=[0 for i in range(ONS_day[0])]+interpolate(ONS_day,first_guess[interval])
+        # add the final value enough times to make it up-to-date with case data + the time shift
+        initial=initial+[initial[-1] for i in range(len(initial),len(cases)+9)]
+        # take weekly time points, shifted 9 days to map to date of exposure (approximately)
+        initial=[initial[7*i+9] for i in range(weeks)]
         
-    plt.fill_between(range(len(cases)),[0 for i in range(len(cases))],[100*100*i/population_of[age] for i in I],color='k',linewidth=0,alpha=0.2)
+        # optimization using scipy, define bounds 
+        bnds = tuple([(0, None) for i in range(weeks)])
+        # do the optimization (can try different methods)
+        res = optimize.minimize(f,initial, method='COBYLA', bounds=bnds, options={'disp': False})
+        # extract the result
+        reporting_multiplier[interval] = [r for r in res['x']] 
+    
+    # and plot    
+    days=[i*7 for i in range(weeks)]
+    
+    #print(first_guess['Rate'])
+    #plt.plot(first_guess['Rate'])
+    #plt.scatter(days,initial,s=10,vmin=0,vmax=1)
+    #plt.scatter(days,reporting_multiplier['Rate'],s=10,vmin=0,vmax=1)
+    
+    I={}
+    for interval in reporting_multiplier:
+        theta=reporting_multiplier[interval]
+        time=[i*7 for i in range(len(theta))]
+        daily_theta=[0 for i in range(time[0])]
+        daily_theta=daily_theta+interpolate(time,list(theta))
+        while len(daily_theta)<len(cases):
+            daily_theta.append(daily_theta[-1])
+    
+        print()
+        I[interval]=[0 for i in range(ONS_day[0])]
+        I[interval]=I[interval]+[100*100*theta_times_I[t]/(daily_theta[t]*population_of[age]) for t in range(ONS_day[0],len(theta_times_I))]
+
+
+    # plot the comparison to ONS 
+    print([100*sum([theta_times_I[ONS_day[t]-j]*S_pcr[j]/daily_theta[ONS_day[t]-j] for j in range(testable_period)]) for t in range(len(rate['Rate']))][-5:])
+    print([population_of[age]*rate['Rate'][t]/100 for t in range(len(rate['Rate']))][-5:])
+    plt.plot(ONS_day,[100*100*sum([theta_times_I[t-j]*S_pcr[j]/(daily_theta[t-j]*population_of[age]) for j in range(testable_period)]) for t in ONS_day])
+    plt.scatter(ONS_day,rate['Rate'])
 
     
     #plt.scatter(ONS_day,testing_multiplier,s=10,facecolors='#006666')
     #output_data[age]=multiplier
     output_data['reporting_multiplier_'+age]=reporting_multiplier
     #output_data['testing_multiplier_'+age]=testing_multiplier
-    output_data['incidence_'+age]=[100*i/population_of[age] for i in I]
-    output_data['variant_proportion_'+age]=new_variant_proportion
-    output_data['sgtf_proportion_'+age]=variant_proportion
+    output_data['incidence_'+age]=I
+    output_data['sgtf_proportion_'+age]=SGTF_proportion
     
     # find the daily incidence 
     
 
-output_data['date']=ONS_day
+output_data['date']=days
+
 pk.dump(output_data,open('../pickles/reporting_rates_(age).p','wb'))
    
-plt.savefig('../figures/time_dependent_multiplier_ages.png',format='png', bbox_inches='tight',dpi=256)
+#plt.savefig('../figures/time_dependent_multiplier_ages.png',format='png', bbox_inches='tight',dpi=256)
 
 
 

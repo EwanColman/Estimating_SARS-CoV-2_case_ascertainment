@@ -13,6 +13,7 @@ import scipy.optimize as optimize
 rate_df=pd.read_csv('../output/time_independent_rates.csv',index_col='Group')
 print(rate_df.head())
 
+adjusted_cases=pk.load(open('../pickles/adjusted_cases.p','rb'))
 
 delta=1
 
@@ -188,7 +189,7 @@ for age in name_of:
     ax.fill_between(ONS_day,rate['Lower'],rate['Upper'],color='k',linewidth=0,alpha=0.1,label=leg1) 
    
 
-    #ax.scatter(ONS_day,[100*c/population_of[age] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b',label=leg3)
+    ax.scatter(ONS_day,adjusted_cases[age],s=10,facecolors='none', edgecolors='b',label=leg3)
     # add the result to the plot
     #ax.text(100,3,'$\\theta_{o}='+str(round(100/x1))+'$%, $\\theta_{A}='+str(round(100/x2))+'$%, $\\theta_{\\Delta}='+str(round(100/x3))+'$%',size=fs)
     #table=table+' & $'+str(round(100/x1))+'$ & $'+str(round(100/x2))+'$ \\\ \n'
@@ -298,7 +299,7 @@ for region in population_of:
     plt.fill_between(ONS_day,lower,upper,color='k',linewidth=0,alpha=0.1) 
     plt.scatter(ONS_day,rate,s=10,color='k',marker='^')
 
-    #plt.scatter(ONS_day,[100*c/population_of[region] for c in adjusted_cases],s=10,facecolors='none', edgecolors='b')
+    plt.scatter(ONS_day,adjusted_cases[region],s=10,facecolors='none', edgecolors='b')
     # add the result to the plot
     #ax.text(100,3,'$\\theta_{o}='+str(round(100/x1))+'$%, $\\theta_{A}='+str(round(100/x2))+'$%, $\\theta_{\\Delta}='+str(round(100/x3))+'$%',size=fs)
     # add to the latex output table 

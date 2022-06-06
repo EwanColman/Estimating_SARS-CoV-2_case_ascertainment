@@ -117,6 +117,8 @@ for variant in variant_start:
     output[variant+'_Lower']=[]
     output[variant+'_Upper']=[]
 
+# and for figure S2
+adjusted_cases={}
 
 testable_period=30#5+int(30*stretch)
 ### Lognormal incubation period distribution
@@ -271,6 +273,8 @@ for age in population_of:
         for variant in params:
             output[variant+'_'+interval].append(params[variant])
 
+    adjusted_cases[age]=[(100/population_of[age])*sum(new_cases[variant][i]*100/params[variant] for variant in new_cases) for i in range(len(new_ONS))]
+    
         
 ######## REGIONS   ##############################
 
@@ -322,7 +326,6 @@ for region in population_of:
     SGTF_proportion=df['SGTF_proportion'].tolist()
     # complete the list
     SGTF_proportion=SGTF_proportion+[SGTF_proportion[-1] for i in range(end_date-len(SGTF_proportion))]
-    print(len(SGTF_proportion))
     
     ### get all the proportions for each variant across time
     variant_proportion={}
@@ -373,7 +376,11 @@ for region in population_of:
         for variant in params:
             output[variant+'_'+interval].append(params[variant])
 
-        
+    # store the adjusted cases
+    
+    adjusted_cases[region]=[(100/population_of[region])*sum(new_cases[variant][i]*100/params[variant] for variant in new_cases) for i in range(len(new_ONS))]
+          
+pk.dump(adjusted_cases,open('../pickles/adjusted_cases.p','wb'))    
 
 pd.DataFrame(output).to_csv('../output/time_independent_rates.csv',index=False)
 #pd.DataFrame(output).to_csv('../output/time_independent_rates_(higher_sensitivity).csv',index=False)

@@ -1,8 +1,13 @@
 areaCode,areaName,areaType,date,newCasesBySpecimenDate
-E12000001,North East,region,2022-05-31,162
-E12000001,North East,region,2022-05-30,264
-E12000001,North East,region,2022-05-29,226
-E12000001,North East,region,2022-05-28,180
+E12000001,North East,region,2022-06-05,277
+E12000001,North East,region,2022-06-04,274
+E12000001,North East,region,2022-06-03,251
+E12000001,North East,region,2022-06-02,224
+E12000001,North East,region,2022-06-01,242
+E12000001,North East,region,2022-05-31,244
+E12000001,North East,region,2022-05-30,284
+E12000001,North East,region,2022-05-29,229
+E12000001,North East,region,2022-05-28,182
 E12000001,North East,region,2022-05-27,222
 E12000001,North East,region,2022-05-26,235
 E12000001,North East,region,2022-05-25,284

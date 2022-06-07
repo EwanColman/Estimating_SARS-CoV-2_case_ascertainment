@@ -1,12 +1,17 @@
 areaCode,areaName,areaType,date,newCasesBySpecimenDate
-E12000009,South West,region,2022-05-31,422
-E12000009,South West,region,2022-05-30,592
-E12000009,South West,region,2022-05-29,508
-E12000009,South West,region,2022-05-28,431
-E12000009,South West,region,2022-05-27,457
-E12000009,South West,region,2022-05-26,492
+E12000009,South West,region,2022-06-05,535
+E12000009,South West,region,2022-06-04,565
+E12000009,South West,region,2022-06-03,558
+E12000009,South West,region,2022-06-02,528
+E12000009,South West,region,2022-06-01,580
+E12000009,South West,region,2022-05-31,627
+E12000009,South West,region,2022-05-30,619
+E12000009,South West,region,2022-05-29,512
+E12000009,South West,region,2022-05-28,435
+E12000009,South West,region,2022-05-27,459
+E12000009,South West,region,2022-05-26,493
 E12000009,South West,region,2022-05-25,498
-E12000009,South West,region,2022-05-24,536
+E12000009,South West,region,2022-05-24,537
 E12000009,South West,region,2022-05-23,639
 E12000009,South West,region,2022-05-22,551
 E12000009,South West,region,2022-05-21,429

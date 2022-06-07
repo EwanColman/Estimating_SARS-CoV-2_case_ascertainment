@@ -43,7 +43,7 @@ variant_proportion={}
 
 start_date='1 November 2020'
 start_day=(datetime.strptime(str(start_date), '%d %B %Y')-time_zero).days
-end_date='1 June 2022'
+end_date='1 July 2022'
 end_day=(datetime.strptime(str(end_date), '%d %B %Y')-time_zero).days
 Sep20='20 September 2020'
 Sep20=(datetime.strptime(str(Sep20), '%d %B %Y')-time_zero).days

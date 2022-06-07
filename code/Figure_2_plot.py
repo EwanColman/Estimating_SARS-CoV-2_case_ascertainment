@@ -13,10 +13,10 @@ import pandas as pd
 from datetime import datetime
 
 
-max_day=635
+max_day=825
 fs=12
 start_date='1 August 2020'
-end_date='11 November 2021'
+end_date='1 June 2022'
 
 #measure days from this day
 time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
@@ -25,7 +25,10 @@ end_date=(datetime.strptime(end_date, '%d %B %Y')-time_zero).days
 ###########################################
 
 # Get list of dates for axes 
-dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]+['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,11)]
+dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]
+dates=dates+['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,13)]
+dates=dates+['01/0'+str(i)+'/2022' for i in range(1,5)]
+
 dates_words=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in dates]
 dates_numerical=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in dates]
   
@@ -41,7 +44,10 @@ plt.subplots_adjust(hspace=0,wspace=0)
 
 
 #folder='../raw_data/Regions'
-data=pk.load(open('../pickles/reporting_rates_(age).p','rb'))
+data=pk.load(open('../pickles/reporting_rates_(age)_200.p','rb'))
+
+
+
 
 name_of={'02_10':'2 to 10',
          '11_15':'11 to 15',
@@ -100,12 +106,25 @@ for age in name_of:
         plt.text(100,200,'A',size=20)
           
 
-    reporting_multiplier=data['reporting_multiplier_'+age]
-    #testing_multiplier=data['testing_multiplier_'+age]
-    new_variant_proportion=data['variant_proportion_'+age]
-    sgtf_proportion=data['sgtf_proportion_'+age]
-    #plt.scatter(date,reporting_multiplier,s=10,facecolors='#006666')
+    # medians and confidence intervals
+    reporting_multiplier_list=data['reporting_multiplier_'+age]
+    reporting_multiplier={'Lower':[],'Rate':[],'Upper':[]}
+    for t in range(len(reporting_multiplier_list[0])):
+        rate_list=sorted([reporting_multiplier_list[j][t] for j in range(200)])
+        
+        reporting_multiplier['Lower'].append(rate_list[4])
+        reporting_multiplier['Rate'].append(rate_list[99])
+        reporting_multiplier['Upper'].append(rate_list[194])
     
+    incidence_list=data['incidence_'+age]
+    incidence={'Lower':[],'Rate':[],'Upper':[]}
+    for t in range(len(incidence_list[0])):  
+        inci_list=sorted([incidence_list[j][t] for j in range(200)])
+        incidence['Lower'].append(inci_list[4])
+        incidence['Rate'].append(inci_list[99])
+        incidence['Upper'].append(inci_list[194])
+    ##########
+        
     #if i==1:
     leg1='Ascertainment rate'
     leg2='Ascertainment rate 95% confidence interval'
@@ -128,7 +147,7 @@ for age in name_of:
     #I=data['incidence_'+age]
     #plt.fill_between(range(Sep1,len(I)),[0 for i in range(Sep1,len(I))],I[Sep1:],color='k',linewidth=0,alpha=0.1)
 
-    I=data['incidence_'+age]['Rate'][0:end_date]
+    I=incidence['Rate'][0:end_date]
     ax2.plot(range(date[0],len(I)),I[date[0]:],color='g',linewidth=0.75,label='Daily new infections')
 
 
@@ -139,7 +158,7 @@ ax2.legend(loc=2,ncol=2,prop={'size':fs},frameon=False,bbox_to_anchor=(1.2, 0.2)
 
 
 ############# REGIONS ###################################
-data=pk.load(open('../pickles/reporting_rates_(region).p','rb'))
+data=pk.load(open('../pickles/reporting_rates_(region)_200.p','rb'))
 
 name_of={'London':'London',
         'SouthEast':'South East',
@@ -219,10 +238,25 @@ for region in regions:
     # adust the date range
     date=date[start:end]
     
-    reporting_multiplier=data['reporting_multiplier_'+region]
-    #testing_multiplier=data['testing_multiplier_'+region]
-    #new_variant_proportion=data['variant_proportion_'+region]
-    sgtf_proportion=data['sgtf_proportion_'+region]
+    
+    # medians and confidence intervals
+    reporting_multiplier_list=data['reporting_multiplier_'+region]
+    reporting_multiplier={'Lower':[],'Rate':[],'Upper':[]}
+    for t in range(len(reporting_multiplier_list[0])):
+        rate_list=sorted([reporting_multiplier_list[j][t] for j in range(200)])
+        
+        reporting_multiplier['Lower'].append(rate_list[4])
+        reporting_multiplier['Rate'].append(rate_list[99])
+        reporting_multiplier['Upper'].append(rate_list[194])
+    
+    incidence_list=data['incidence_'+region]
+    incidence={'Lower':[],'Rate':[],'Upper':[]}
+    for t in range(len(incidence_list[0])):  
+        inci_list=sorted([incidence_list[j][t] for j in range(200)])
+        incidence['Lower'].append(inci_list[4])
+        incidence['Rate'].append(inci_list[99])
+        incidence['Upper'].append(inci_list[194])
+    ##########
     
 
     ax.plot(date,reporting_multiplier['Rate'][start:end],linestyle=':',marker='o',markersize=2,color='k',linewidth=1,zorder=1)
@@ -239,8 +273,8 @@ for region in regions:
         ax2.set_yticks([])
     if i==9: 
         ax2.set_ylabel('Percentage of population',size=fs)
-        
-    I=data['incidence_'+region]['Rate'][0:end_date]
+      
+    I=incidence['Rate'][0:end_date]
     ax2.plot(range(date[0],len(I)),I[date[0]:],color='g',linewidth=0.75)
 
 

@@ -277,7 +277,6 @@ for age in population_of:
     # add 0s from march 1
     vaxed=[0 for i in range(min(df['days_since_march1']))]
     vaxed=vaxed+df['vaccinated'].tolist()
-    print(vaxed)
     
     # calculate as a proportion of pop
     vax_pop=[sum(vaxed[:i])/population_of[age] for i in range(len(vaxed))]

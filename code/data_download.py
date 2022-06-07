@@ -8,8 +8,6 @@ Created on Sat Jul 24 10:49:03 2021
 import pandas as pd
 
 
-
-
 code={'Wales':'W92000004',
         'Scotland':'S92000003',
         'NorthernIreland':'N92000002'}
@@ -56,21 +54,22 @@ for region in code:
     df=pd.read_csv(url)
     df.to_csv('../raw_data/Vaccination/'+region+'_vaccinations.csv',index=False)
 
-    
-
 # cases in England PCR only, LFD only, and all
 url='https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&metric=newCasesLFDConfirmedPCRBySpecimenDate&metric=newCasesLFDOnlyBySpecimenDate&metric=newCasesPCROnlyBySpecimenDate&format=csv'
+
 
 df=pd.read_csv(url)
 df.to_csv('../raw_data/England_cases.csv',index=False)
 
-
+print(df.columns)
 
 #### age stuff ####
 # categories are ot the same so we make adjustments
 url="https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDateAgeDemographics&format=csv"
 
 df=pd.read_csv(url)
+
+print(df.columns)
 
 age_categories=['02_10','11_15','16_24','25_34','35_49','50_69']#,'70+']
 
@@ -99,13 +98,15 @@ for age in age_categories:
 output['70+']=[0 for i in range(len(dates))]
 
 
+total_cases_ages=[0 for i in range(1000)]
+
 # compare every group and every age category
 age_groups=[]
 for group in groups:
     group_df=df[df['age']==group]
     cases=group_df['cases'].tolist()
-    dates=group_df['date'].tolist()
 
+    total_cases_ages=[total_cases_ages[i]+cases[i] for i in range(len(cases))]
     for age in age_categories:
        
         # get the intervals of the age and the group
@@ -121,14 +122,26 @@ for group in groups:
             # add a portion of the cases in the overlapping agegroup to the caase for the age category
             output[age]=[output[age][i]+round((overlap/5)*cases[i]) for i in range(len(dates))]
     
+
 for group in last_groups:
+    group_df=df[df['age']==group]
     cases=group_df['cases'].tolist()
     output['70+']=[output['70+'][i]+cases[i] for i in range(len(dates))]
+
+# total_cases2=[0 for i in range(1000)]
+# for age in age_categories:
+#     total_cases2=[total_cases2[i]+output[age][i] for i in range(len(cases))]
+
+
+#for c in range(len(total_cases_ages)):
+#    print(total_cases_ages[c],total_cases2[c])
+
+
 
 for age in output:
     
     df=pd.DataFrame()
-    df['date']=dates
+    df['date']=group_df['date'].tolist()
     df['cases']=output[age]
     df.to_csv("../raw_data/Diagnostic/"+age+'_cases.csv',index=False)
 

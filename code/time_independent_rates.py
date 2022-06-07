@@ -187,40 +187,25 @@ for age in population_of:
     print(age)
     output['Group'].append(age)
 
-    df=pd.read_csv('../raw_data/Surveillance/'+age+'_surveillance.csv',sep=',')
+    ons_df=pd.read_csv('../raw_data/Surveillance/'+age+'_surveillance.csv',sep=',')
     # add a new column with header days since Mar1
-    time_in_days=[]
-    date=df['Date'].tolist()
-    while date:
-        d=date.pop(0)
-        #print(d)
-        day_numerical=(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days
-        # minus 7 to get midpoint of the 2-week estimate
-        time_in_days.append(day_numerical)
+    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in ons_df['Date'].tolist()]
     
     # add it to the dataframe
-    df['days_since_march1']=time_in_days
+    ons_df['days_since_march1']=time_in_days
     # needs to be in order earliest to latest
-    df=df.sort_values('days_since_march1')
+    ons_df=ons_df.sort_values('days_since_march1')
     #df.drop(df.tail(1).index,inplace=True)
-    df=df[(df['days_since_march1']>start_date)] 
+    ons_df=ons_df[(ons_df['days_since_march1']>start_date)] 
     
-    # convert data frame to lists for plotting
-    rate=df.reset_index()
-    ONS_day=df['days_since_march1'].tolist()
+    ONS_day=ons_df['days_since_march1'].tolist()
     #date=df['Date'].tolist()
     
     ###### CASES ##########
     df=pd.read_csv('../raw_data/Diagnostic/'+age+'_cases.csv')
 
     # add a new column with header days since Mar1
-    time_in_days=[]
-    date=df['date'].tolist()
-    while date:
-        d=date.pop(0)
-        #print(d)
-        day_numerical=(datetime.strptime(str(d), '%Y-%m-%d')-time_zero).days
-        time_in_days.append(day_numerical)
+    time_in_days=[(datetime.strptime(str(d), '%Y-%m-%d')-time_zero).days for d in df['date'].tolist()]
     
     df['days_since_march1']=time_in_days
     df=df.sort_values('days_since_march1',ascending=True)
@@ -255,25 +240,45 @@ for age in population_of:
         # store in the dictionary
         new_cases[variant]=temp_list
 
+    params_list=[]
+    # 200 resamplings
+    for i in range(200):
 
-    
-    ## loop over the three lines
-    reporting_multiplier={'Lower':[],'Upper':[],'Rate':[]}
-    
-    #for interval in reporting_multiplier:
-    
-    for interval in ['Rate','Lower','Upper']:
-        new_ONS=[population_of[age]*r/100 for r in rate[interval]]
+        # the resampled rate
+        rate=[]
+        
+        for j,row in ons_df.iterrows():
+            # calculate mean and sd for that day
+            #print(row)
+            mu=row['Rate']
+            sigma=(row['Upper']-row['Lower'])/(2*1.96)
+            # sample from distribution for new rate
+            rate.append(max(0,np.random.normal(mu, sigma)))
+        ## loop over the three lines
+        reporting_multiplier=[]#{'Lower':[],'Upper':[],'Rate':[]}
+
+        #    for interval in ['Rate','Lower','Upper']:
+        new_ONS=[population_of[age]*r/100 for r in rate]
         ############# END ############                           
     
         #### Calculate th multiplier ###########
         
         params=hill_climb(new_cases,new_ONS)
-        
-        for variant in params:
-            output[variant+'_'+interval].append(params[variant])
 
-    adjusted_cases[age]=[(100/population_of[age])*sum(new_cases[variant][i]*100/params[variant] for variant in new_cases) for i in range(len(new_ONS))]
+        params_list.append(params)
+
+
+    
+    median_params={}
+    for variant in params:
+        variant_dist=sorted([params_list[i][variant] for i in range(200)])  
+        
+        output[variant+'_Lower'].append(variant_dist[4])
+        output[variant+'_Rate'].append(variant_dist[99])
+        output[variant+'_Upper'].append(variant_dist[194])
+        median_params[variant]=variant_dist[4]
+
+    adjusted_cases[age]=[(100/population_of[age])*sum(new_cases[variant][i]*100/median_params[variant] for variant in new_cases) for i in range(len(new_ONS))]
     
         
 ######## REGIONS   ##############################
@@ -299,23 +304,18 @@ for region in population_of:
     output['Group'].append(region)
 
     # get surveillance data for the region    
-    df=pd.read_csv('../raw_data/Surveillance/'+region+'_surveillance_1k.csv',sep=',')
+    ons_df=pd.read_csv('../raw_data/Surveillance/'+region+'_surveillance_1k.csv',sep=',')
     
     # add a new column with header days since Mar1 
-    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in df['Date'].tolist()]
+    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in ons_df['Date'].tolist()]
     # add it to the dataframe
-    df['days_since_march1']=time_in_days
+    ons_df['days_since_march1']=time_in_days
     # needs to be in order earliest to latest
-    df=df.sort_values('days_since_march1')
+    ons_df=ons_df.sort_values('days_since_march1')
     #df.drop(df.tail(1).index,inplace=True)
+    ons_df=ons_df[(ons_df['days_since_march1']>start_date)]
     
-    df=df[(df['days_since_march1']>start_date)]
-    
-    
-    # convert data frame to lists for plotting
-    rate=df.reset_index()
-    ONS_day=df['days_since_march1'].tolist()
-    date=df['Date'].tolist()
+    ONS_day=ons_df['days_since_march1'].tolist()
     
     ###### CASES ##########
     df=pd.read_csv('../processed_data/'+region+'_daily_data.csv')
@@ -364,21 +364,45 @@ for region in population_of:
             
         # store in the dictionary
         new_cases[variant]=temp_list
-
+    ########################
     
-    for interval in ['Rate','Lower','Upper']:
-        new_ONS=[population_of[region]*r/100 for r in rate[interval]]
-        ############# END ############
-                            
+    params_list=[]
+    # 200 resamplings
+    for i in range(200):
+        
+        # the resampled rate
+        rate=[]
+        
+        for j,row in ons_df.iterrows():
+            # calculate mean and sd for that day
+            #print(row)
+            mu=row['Rate']
+            sigma=(row['Upper']-row['Lower'])/(2*1.96)
+            # sample from distribution for new rate
+            rate.append(max(0,np.random.normal(mu, sigma)))
+        ## loop over the three lines
+        reporting_multiplier=[]#{'Lower':[],'Upper':[],'Rate':[]}
+
+        #    for interval in ['Rate','Lower','Upper']:
+        new_ONS=[population_of[region]*r/100 for r in rate]
+        ############# END ############                           
+    
         #### Calculate the multiplier ###########
         params=hill_climb(new_cases,new_ONS)
-        
-        for variant in params:
-            output[variant+'_'+interval].append(params[variant])
+        params_list.append(params)
 
-    # store the adjusted cases
-    
-    adjusted_cases[region]=[(100/population_of[region])*sum(new_cases[variant][i]*100/params[variant] for variant in new_cases) for i in range(len(new_ONS))]
+    median_params={}
+    for variant in params:
+        variant_dist=sorted([params_list[i][variant] for i in range(200)])  
+                
+        output[variant+'_Lower'].append(variant_dist[4])
+        output[variant+'_Rate'].append(variant_dist[99])
+        output[variant+'_Upper'].append(variant_dist[194])
+
+        median_params[variant]=variant_dist[4]
+
+    # store the adjusted cases    
+    adjusted_cases[region]=[(100/population_of[region])*sum(new_cases[variant][i]*100/median_params[variant] for variant in new_cases) for i in range(len(new_ONS))]
           
 pk.dump(adjusted_cases,open('../pickles/adjusted_cases.p','wb'))    
 

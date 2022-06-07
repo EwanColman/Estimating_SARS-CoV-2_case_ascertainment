@@ -1,12 +1,17 @@
 areaCode,areaName,areaType,date,newCasesBySpecimenDate
-E12000008,South East,region,2022-05-31,735
-E12000008,South East,region,2022-05-30,1016
-E12000008,South East,region,2022-05-29,859
-E12000008,South East,region,2022-05-28,742
-E12000008,South East,region,2022-05-27,828
-E12000008,South East,region,2022-05-26,879
+E12000008,South East,region,2022-06-05,1051
+E12000008,South East,region,2022-06-04,1147
+E12000008,South East,region,2022-06-03,1079
+E12000008,South East,region,2022-06-02,913
+E12000008,South East,region,2022-06-01,1110
+E12000008,South East,region,2022-05-31,1039
+E12000008,South East,region,2022-05-30,1077
+E12000008,South East,region,2022-05-29,869
+E12000008,South East,region,2022-05-28,758
+E12000008,South East,region,2022-05-27,832
+E12000008,South East,region,2022-05-26,881
 E12000008,South East,region,2022-05-25,900
-E12000008,South East,region,2022-05-24,979
+E12000008,South East,region,2022-05-24,980
 E12000008,South East,region,2022-05-23,1050
 E12000008,South East,region,2022-05-22,924
 E12000008,South East,region,2022-05-21,740
@@ -14,7 +19,7 @@ E12000008,South East,region,2022-05-20,856
 E12000008,South East,region,2022-05-19,994
 E12000008,South East,region,2022-05-18,1114
 E12000008,South East,region,2022-05-17,1152
-E12000008,South East,region,2022-05-16,1223
+E12000008,South East,region,2022-05-16,1224
 E12000008,South East,region,2022-05-15,1163
 E12000008,South East,region,2022-05-14,896
 E12000008,South East,region,2022-05-13,996
@@ -132,7 +137,7 @@ E12000008,South East,region,2022-01-22,13166
 E12000008,South East,region,2022-01-21,14575
 E12000008,South East,region,2022-01-20,15379
 E12000008,South East,region,2022-01-19,16435
-E12000008,South East,region,2022-01-18,17222
+E12000008,South East,region,2022-01-18,17223
 E12000008,South East,region,2022-01-17,18610
 E12000008,South East,region,2022-01-16,13755
 E12000008,South East,region,2022-01-15,10793

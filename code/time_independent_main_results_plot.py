@@ -1,14 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Oct  5 17:49:58 2021
-
-@author: ewanc
-"""
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df=pd.read_csv('../output/time_independent_rates_(hill_climb).csv')
+df=pd.read_csv('../output/time_independent_rates.csv')
 
 print(df.head())
 

@@ -1,0 +1,293 @@
+import pandas as pd
+from datetime import datetime
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import erf
+from scipy import stats
+import pickle as pk
+# for correlations use the last T points
+import scipy.optimize as optimize
+
+def interpolate(X_series,Y_series):
+    
+    x_series=X_series.copy()
+    y_series=Y_series.copy()
+    
+    #### Interpolation
+    # et te first day that is not None
+    first_x=x_series[0]
+    # linear interpolation to get all days
+    y_interpolated=[]
+    
+    last_x=first_x
+    last_y=0
+    
+    y_int=y_series[0]
+    
+    while x_series:
+        x=x_series.pop(0)
+        y=y_series.pop(0)
+        if y:
+            delta_x=x-last_x
+            delta_y=y-last_y
+            #print(delta_p,delta_t)
+            for i in range(delta_x):
+                y_int=y_int+delta_y/delta_x        
+                #print(delta_p/delta_t)
+                y_interpolated.append(y_int)
+                
+            last_x=x
+            last_y=y  
+   
+    return y_interpolated
+
+
+def f(theta):
+    # first convert to daily (with interplotation)
+    # daily_theta=[]
+    # for k in range(1,len(theta)):
+    #     daily_theta=daily_theta+[theta[k-1]+i*(theta[k]-theta[k-1])/7 for i in range(7)]
+    
+
+    time=[i*7 for i in range(len(theta))]
+    daily_theta=[0 for i in range(time[0])]
+    daily_theta=daily_theta+interpolate(time,list(theta))
+    while len(daily_theta)<len(cases):
+        daily_theta.append(daily_theta[-1])
+
+    #print(len(daily_theta))
+    Z=sum([abs(population_of[region]*rate[t]/100 - 100*sum([theta_times_I[ONS_day[t]-j]*S_pcr[j]/daily_theta[ONS_day[t]-j] for j in range(testable_period)])) for t in range(len(rate))])   
+
+    return Z
+
+
+folder='../raw_data/Surveillance'
+cmap = plt.cm.get_cmap('winter')
+max_day=825
+delta=1
+
+#measure days from this day
+time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
+
+# ONS opulation estimates
+# pop_df=pd.read_excel('ukmidyearestimates20192020ladcodes',sheet_name='MYE2 - Persons',skiprows=4)
+population_of={'NorthWest':7341196,
+               'YorkshireandTheHumber':5502967,
+               'NorthEast':2669941,
+               'WestMidlands':5934037,
+               'EastMidlands':4835928,
+               'EastofEngland':6236072,
+               'SouthWest':5624696,
+               'London':8961989,
+               'SouthEast':9180135,
+               'Wales':3152879,
+               'Scotland':5463300,
+               'NorthernIreland':1893667
+               }
+
+name_of={'London':'London',
+        'SouthEast':'South East',
+        'EastofEngland':'East of England',
+        'SouthWest':'South West',
+        'EastMidlands':'East Midlands',
+        'WestMidlands':'West Midlands',
+        'YorkshireandTheHumber':'Yorkshire and the Humber',
+        'NorthEast':'North East',
+        'NorthWest':'North West',
+        'Wales':'Wales',
+        'Scotland':'Scotland',
+        'NorthernIreland':'Northern Ireland'
+        }
+
+#### Probability of positive test #################
+# add a bit of the future to prevent indexing errors
+
+# choose th testable period (tail length)
+
+### Lognormal incubation period distribution
+# from https://www.acpjournals.org/doi/full/10.7326/M20-0504
+mean,dispersion=5.5,1.52
+mu,sigma=np.log(mean),np.log(dispersion)
+testable_period=30
+
+R=[]
+for i in range(testable_period):
+    x=i+1
+    u=(1/2)*(1+erf((np.log(x)-mu)/(sigma*(2**(1/2)))))
+    x=i
+    l=(1/2)*(1+erf((np.log(x)-mu)/(sigma*(2**(1/2)))))
+    p=u-l
+    R.append(p)
+
+#### Probability of positive test #################
+# the value in position i is th probability of testing positive i days after infection
+#from https://www.medrxiv.org/content/10.1101/2020.11.24.20229948v1.full.pdf
+df=pd.read_csv('../raw_data/PCR_curve_summary.csv')
+S_pcr=[np.mean(df['median'].tolist()[i:i+10]) for i in range(0,10*testable_period,10)]
+
+df=pd.read_csv('../raw_data/LFD_curve_summary.csv')
+S_lfd=[np.mean(df['median'].tolist()[i:i+10]) for i in range(0,10*testable_period,10)]
+
+
+
+#S=S+[0 for i in range(30,testable_period)]
+
+# make the probability function as a list
+P_pcr=[]
+for j in range(delta,testable_period):
+    numerator=R[j-delta]#*S[j]
+    # sum([C[t+k] for k in range(3,10)])*
+    denominator=sum([R[i-delta]*S_pcr[i] for i in range(testable_period)])
+    P_pcr.append(numerator/denominator)   
+
+# make the probability function as a list
+P_lfd=[]
+for j in range(testable_period):
+    numerator=R[j]#*S[j]
+    # sum([C[t+k] for k in range(3,10)])*
+    denominator=sum([R[i]*S_lfd[i] for i in range(testable_period)])
+    P_lfd.append(numerator/denominator) 
+
+# get LFD prop for England
+df=pd.read_csv('../processed_data/England_daily_data.csv')
+LFD_proportion=df['LFD_proportion'].tolist()
+
+
+fig=plt.figure(figsize=(12,8))
+plt.subplots_adjust(hspace=0,wspace=0)
+
+#region='London'
+
+output_data={}
+
+for region in population_of:
+    print(region)
+    output_data['reporting_multiplier_'+region]=[] 
+    output_data['incidence_'+region]=[]
+    
+    #### SURVEILLANCE ########
+    ons_df=pd.read_csv(folder+'/'+region+'_surveillance_1k.csv',sep=',')
+    
+    # add a new column with header days since Mar1
+    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in ons_df['Date'].tolist()]
+    
+    # add it to the dataframe
+    ons_df['days_since_march1']=time_in_days
+    # needs to be in order earliest to latest
+    ons_df=ons_df.sort_values('days_since_march1',ascending=True)
+    # remove days when the rate is 0
+    ons_df=ons_df[ons_df['Rate']>0]
+    
+    ONS_day=ons_df['days_since_march1'].tolist()
+    
+    ###### CASES ##########
+    df=pd.read_csv('../processed_data/'+region+'_daily_data.csv')
+    #  drop last one (remove this is not needed)
+    cases=df['cases'].tolist()
+    #time_in_days=df['Days_since_March1'].tolist()
+    SGTF_proportion=df['SGTF_proportion'].tolist()
+    
+    # make the fnction and add some 0s to the end
+    C=cases+[0 for i in range(100)]
+    
+    theta_times_I=[]
+    for t in range(len(cases)):
+        Y_pcr=sum([C[t+j]*P_pcr[j-delta]*S_pcr[j] for j in range(delta,testable_period)])
+        Y_lfd=sum([C[t+j]*P_lfd[j]*S_lfd[j] for j in range(testable_period)])
+        Y=(1-LFD_proportion[t])*Y_pcr+LFD_proportion[t]*Y_lfd
+        theta_times_I.append(Y)
+   
+    ############################################
+    
+    new_cases=[]
+    
+    # estimate the number of test-positives
+    for t in ONS_day:
+        # j is the time since exposure
+        estimate=sum([theta_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
+        
+        new_cases.append(estimate)
+    
+    
+    
+    # 200 resamplings
+    for i in range(200):
+        print(i)
+        # the resampled rate
+        rate=[]
+        
+        for j,row in ons_df.iterrows():
+            # calculate mean and sd for that day
+            #print(row)
+            mu=row['Rate']
+            sigma=(row['Upper']-row['Lower'])/(2*1.96)
+            # sample from distribution for new rate
+            rate.append(max(0,np.random.normal(mu, sigma)))
+    
+    
+
+    
+        first_guess=[]
+        for j in range(len(new_cases)):
+        
+            if rate[j]>0:
+                first_guess.append(min(100,100*100*new_cases[j]/(population_of[region]*rate[j]))) 
+            else:
+                first_guess.append(100)
+    
+        weeks=int(len(cases)/7)
+        #### calculate multiplier for every time point ##########
+        reporting_multiplier=[]
+    
+        
+        # initial guess has zeros at the start followed by the interpolated first estimate
+        initial=[0 for i in range(ONS_day[0])]+interpolate(ONS_day,first_guess)
+        # add the final value enough times to make it up-to-date with case data + the time shift
+        initial=initial+[initial[-1] for i in range(len(initial),len(cases)+9)]
+        # take weekly time points, shifted 9 days to map to date of exposure (approximately)
+        initial=[initial[7*i+9] for i in range(weeks)]
+        
+        # optimization using scipy, define bounds 
+        bnds = tuple([(0, None) for i in range(weeks)])
+        # do the optimization (can try different methods)
+        res = optimize.minimize(f,initial, method='COBYLA', bounds=bnds, options={'disp': False})
+        # extract the result
+        reporting_multiplier = [r for r in res['x']]  
+        
+        # day estimate is for
+        days=[i*7 for i in range(weeks)]
+        
+        theta=reporting_multiplier
+        time=[i*7 for i in range(len(theta))]
+        daily_theta=[0 for i in range(time[0])]
+        daily_theta=daily_theta+interpolate(time,list(theta))
+        while len(daily_theta)<len(cases):
+            daily_theta.append(daily_theta[-1])
+        
+        I=[]
+
+        theta=reporting_multiplier
+        time=[i*7 for i in range(len(theta))]
+        daily_theta=[0 for i in range(time[0])]
+        daily_theta=daily_theta+interpolate(time,list(theta))
+        while len(daily_theta)<len(cases):
+            daily_theta.append(daily_theta[-1])
+    
+        
+        I=[0 for i in range(ONS_day[0])]
+        I=I+[100*100*theta_times_I[t]/(daily_theta[t]*population_of[region]) for t in range(ONS_day[0],len(theta_times_I))]
+
+        #print(I)
+        #print()
+        output_data['reporting_multiplier_'+region].append(reporting_multiplier)
+        #output_data['variant_proportion_'+region]=new_variant_proportion
+        output_data['incidence_'+region].append(I)
+    
+    # dates for the region's data  
+    output_data['date_'+region]=days
+
+
+    
+pk.dump(output_data,open('../pickles/reporting_rates_(region)_200.p','wb'))
+
+

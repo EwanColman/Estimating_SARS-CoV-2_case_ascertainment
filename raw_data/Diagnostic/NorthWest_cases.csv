@@ -1,9 +1,14 @@
 areaCode,areaName,areaType,date,newCasesBySpecimenDate
-E12000002,North West,region,2022-05-31,419
-E12000002,North West,region,2022-05-30,584
-E12000002,North West,region,2022-05-29,527
-E12000002,North West,region,2022-05-28,443
-E12000002,North West,region,2022-05-27,497
+E12000002,North West,region,2022-06-05,519
+E12000002,North West,region,2022-06-04,618
+E12000002,North West,region,2022-06-03,568
+E12000002,North West,region,2022-06-02,528
+E12000002,North West,region,2022-06-01,594
+E12000002,North West,region,2022-05-31,668
+E12000002,North West,region,2022-05-30,635
+E12000002,North West,region,2022-05-29,530
+E12000002,North West,region,2022-05-28,446
+E12000002,North West,region,2022-05-27,498
 E12000002,North West,region,2022-05-26,592
 E12000002,North West,region,2022-05-25,593
 E12000002,North West,region,2022-05-24,674
@@ -19,7 +24,7 @@ E12000002,North West,region,2022-05-15,804
 E12000002,North West,region,2022-05-14,630
 E12000002,North West,region,2022-05-13,705
 E12000002,North West,region,2022-05-12,809
-E12000002,North West,region,2022-05-11,892
+E12000002,North West,region,2022-05-11,893
 E12000002,North West,region,2022-05-10,1010
 E12000002,North West,region,2022-05-09,1202
 E12000002,North West,region,2022-05-08,1034
@@ -151,7 +156,7 @@ E12000002,North West,region,2022-01-03,33567
 E12000002,North West,region,2022-01-02,26528
 E12000002,North West,region,2022-01-01,17331
 E12000002,North West,region,2021-12-31,27020
-E12000002,North West,region,2021-12-30,33737
+E12000002,North West,region,2021-12-30,33736
 E12000002,North West,region,2021-12-29,38864
 E12000002,North West,region,2021-12-28,30056
 E12000002,North West,region,2021-12-27,26929
@@ -209,7 +214,7 @@ E12000002,North West,region,2021-11-06,2848
 E12000002,North West,region,2021-11-05,3128
 E12000002,North West,region,2021-11-04,3415
 E12000002,North West,region,2021-11-03,3855
-E12000002,North West,region,2021-11-02,4073
+E12000002,North West,region,2021-11-02,4074
 E12000002,North West,region,2021-11-01,4817
 E12000002,North West,region,2021-10-31,3811
 E12000002,North West,region,2021-10-30,3483

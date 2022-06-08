@@ -71,7 +71,7 @@ gs = fig.add_gridspec(2,2)
 
 
 #folder='../raw_data/Regions'
-data=pk.load(open('../pickles/reporting_rates_(age).p','rb'))
+data=pk.load(open('../pickles/reporting_rates_(age)_200.p','rb'))
 
 
 
@@ -133,7 +133,27 @@ for age in name_of:
     if i in [1,3]: 
         plt.ylabel('IFR (%)',size=fs)
         #plt.text(100,200,'A',size=20)
-          
+    
+    # medians and confidence intervals
+    reporting_multiplier_list=data['reporting_multiplier_'+age]
+    reporting_multiplier={'Lower':[],'Rate':[],'Upper':[]}
+    for t in range(len(reporting_multiplier_list[0])):
+        rate_list=sorted([reporting_multiplier_list[j][t] for j in range(200)])
+        
+        reporting_multiplier['Lower'].append(rate_list[4])
+        reporting_multiplier['Rate'].append(rate_list[99])
+        reporting_multiplier['Upper'].append(rate_list[194])
+    
+    incidence_list=data['incidence_'+age]
+    incidence={'Lower':[],'Rate':[],'Upper':[]}
+    for t in range(len(incidence_list[0])):  
+        inci_list=sorted([incidence_list[j][t] for j in range(200)])
+        incidence['Lower'].append(inci_list[4])
+        incidence['Rate'].append(inci_list[99])
+        incidence['Upper'].append(inci_list[194])
+    ##########        
+    
+    
     ##### DEATHS ##########
     ####### add dashboard deaths ############
     df=pd.read_csv('../raw_data/Death/'+age+'_deaths.csv')
@@ -150,10 +170,11 @@ for age in name_of:
     monthly_deaths=[None]+[sum(deaths[day_range[m][0]+lag:day_range[m][1]+lag]) for m in range(1,months)]
     #####################
 
-    I_dic=data['incidence_'+age]
+    
+    
     IFR={}
-    for interval in I_dic:
-        I=I_dic[interval]
+    for interval in incidence:
+        I=incidence[interval]
         # aggregate to months 
         monthly_infections=[population_of[age]*sum(I[day_range[month][0]:day_range[month][1]])/100 for month in range(months-1)]
         # ONS

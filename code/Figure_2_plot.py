@@ -25,9 +25,9 @@ end_date=(datetime.strptime(end_date, '%d %B %Y')-time_zero).days
 ###########################################
 
 # Get list of dates for axes 
-dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]
-dates=dates+['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,13)]
-dates=dates+['01/0'+str(i)+'/2022' for i in range(1,5)]
+dates=['01/0'+str(i)+'/2020' for i in range(11,10,2)]+['01/'+str(i)+'/2020' for i in range(11,13,2)]
+dates=dates+['01/0'+str(i)+'/2021' for i in range(1,10,2)]+['01/'+str(i)+'/2021' for i in range(11,13,2)]
+dates=dates+['01/0'+str(i)+'/2022' for i in range(1,6,2)]
 
 dates_words=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in dates]
 dates_numerical=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in dates]
@@ -103,7 +103,7 @@ for age in name_of:
    
     if i==4: 
         plt.ylabel('Percentage of infections',size=fs)
-        plt.text(100,200,'A',size=20)
+        plt.text(40,200,'A',size=20)
           
 
     # medians and confidence intervals
@@ -135,10 +135,10 @@ for age in name_of:
     
     ax2 = ax.twinx()
     ax2.set_xlim([start_date,end_date+10])
-    ax2.set_ylim([0,0.55])
+    ax2.set_ylim([0,2])
     if i in [3,6,7]:
-        ax2.set_yticks([0,0.2,0.4])
-        ax2.set_yticklabels([0,0.2,0.4],size=fs)
+        ax2.set_yticks([0,0.5,1,1.5])
+        ax2.set_yticklabels([0,0.5,1,1.5],size=fs)
     else:
         ax2.set_yticks([])
     if i==6: 
@@ -224,7 +224,7 @@ for region in regions:
    
     if i==7: 
         plt.ylabel('Percentage of infections',size=fs)
-        plt.text(100,200,'B',size=20)
+        plt.text(40,200,'B',size=20)
 
     # get index of sep 1
     date=data['date_'+region]
@@ -265,10 +265,10 @@ for region in regions:
 
     ax2 = ax.twinx()
     ax2.set_xlim([start_date,end_date+10])
-    ax2.set_ylim([0,0.55])
+    ax2.set_ylim([0,2])
     if i%3==0:
-        ax2.set_yticks([0,0.2,0.4])
-        ax2.set_yticklabels([0,0.2,0.4],size=fs)
+        ax2.set_yticks([0,0.5,1,1.5])
+        ax2.set_yticklabels([0,0.5,1,1.5],size=fs)
     else:
         ax2.set_yticks([])
     if i==9: 

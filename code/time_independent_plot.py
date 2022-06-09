@@ -34,7 +34,11 @@ Mar1='1 March 2021'
 Mar1=(datetime.strptime(str(Mar1), '%d %B %Y')-time_zero).days
 
 
-dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]+['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,12)]
+# Get list of dates for axes 
+dates=['01/0'+str(i)+'/2020' for i in range(11,10,2)]+['01/'+str(i)+'/2020' for i in range(11,13,2)]
+dates=dates+['01/0'+str(i)+'/2021' for i in range(1,10,2)]+['01/'+str(i)+'/2021' for i in range(11,13,2)]
+dates=dates+['01/0'+str(i)+'/2022' for i in range(1,6,2)]
+
 dates_numerical=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in dates]
 dates_words=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b')+' 1' for d in dates]
 dates_words2=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in dates]
@@ -47,7 +51,7 @@ LFD_proportion=df['LFD_proportion'].tolist()
 
 
 fig = plt.figure(figsize=(12,16))
-gs = fig.add_gridspec(8, 3, height_ratios=[3,2,2,1,2,2,2,2])
+gs = fig.add_gridspec(8, 3, height_ratios=[2,2,2,1,2,2,2,2])
 plt.subplots_adjust(hspace=0,wspace=0)
 
 testable_period=30#5+int(30*stretch)
@@ -125,19 +129,16 @@ for age in name_of:
     ax = fig.add_subplot(gs[int(i/3),i%3])
     
     ax.set_xlim([Sep1,max_day])
-    
-    if i<3:      
-        ax.text(Sep1+10,7,'Age '+name_of[age],size=fs)
-        ax.set_ylim([0,8])
-    else:
-        ax.set_ylim([0,5])
-        ax.text(Sep1+10,4,'Age '+name_of[age],size=fs)
+    ax.set_ylim([0,14])
+
+    ax.set_ylim([0.03,14])
+    ax.set_yscale('log')
+    ax.text(Sep1+10,6,'Age '+name_of[age],size=fs)
     if i==0:
-        ax.set_yticks([0,1,2,3,4,5,6,7])
-        ax.set_yticklabels([0,1,2,3,4,5,6,7],size=fs)
-    elif i%3==0:
-        ax.set_yticks([0,1,2,3,4])
-        ax.set_yticklabels([0,1,2,3,4],size=fs)
+        plt.text(Sep1-125,7,'A',size=20)
+    if i%3==0:
+        ax.set_yticks([0.1,1,10])
+        ax.set_yticklabels([0.1,1,10],size=fs)
     else:
         ax.set_yticks([])   
     if i>3:
@@ -147,7 +148,7 @@ for age in name_of:
         ax.set_xticks([])
     if i==3: 
         plt.ylabel('Percentage of people')
-        plt.text(Sep1-45,12,'A',size=20)
+        
 
     # increment for next region
     i=i+1
@@ -245,12 +246,16 @@ for region in population_of:
     #ax = fig.add_subplot(gs[11-2*int(i/3):13-2*int(i/3),(4*(i%3)):(4*(i%3)+4)])
     ax = fig.add_subplot(gs[7-int(i/3),i%3])
     #ax=fig.add_subplot(3,3,i) 
-    ax.text(Sep1+10,4,name_of[region],size=fs)
+    ax.text(Sep1+10,6,name_of[region],size=fs)
     ax.set_xlim([Sep1,max_day])
-    ax.set_ylim([0,5])
+    ax.set_ylim([0.03,14])
+    ax.set_yscale('log')
+    if i==9:
+        plt.text(Sep1-125,10,'B',size=20)
+    
     if i%3==0:
-        ax.set_yticks([0,1,2,3,4])
-        ax.set_yticklabels([0,1,2,3,4],size=fs)
+        ax.set_yticks([0.1,1,10])
+        ax.set_yticklabels([0.1,1,10],size=fs)
     else:
         ax.set_yticks([])
         
@@ -262,7 +267,7 @@ for region in population_of:
    
     if i==6: 
         plt.ylabel('Percentage of people')
-        plt.text(Sep1-45,10,'B',size=20)
+        
 
     # increment for next region
     i=i+1

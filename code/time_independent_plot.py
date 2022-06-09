@@ -314,4 +314,4 @@ for region in population_of:
     #     print(best_x)
     #     print(adjusted_cases)
         
-plt.savefig('../figures/supplementary_figure_time_independant.pdf',format='pdf',dpi=300,bbox_inches='tight')
+plt.savefig('../figures/figureS1.pdf',format='pdf',dpi=300,bbox_inches='tight')

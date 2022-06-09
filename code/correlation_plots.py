@@ -13,7 +13,7 @@ import pandas as pd
 from datetime import datetime
 
 
-max_day=575
+max_day=825
 fs=12
 Sep1='1 August 2020'
 time_zero=datetime.strptime('2020-03-01', '%Y-%m-%d')
@@ -188,16 +188,23 @@ regions=['SouthWest',
 M=[]
 #for region1 in regions:
 for i in range(1,12):
+    print()
+    print(regions[i])
+
+    # regions have one more week than nations so remove final point
+    multiplier1=data['reporting_multiplier_'+regions[i]]['Rate'][:115]
     
 
-    multiplier1=data['reporting_multiplier_'+regions[i]]['Rate']
+    
     m=[]
     for j in range(i):
-        multiplier2=data['reporting_multiplier_'+regions[j]]['Rate']
+        # regions have one more week than nations so removefinal point (117)
+        multiplier2=data['reporting_multiplier_'+regions[j]]['Rate'][:115]
         
-        print(multiplier1)
-        print(multiplier2)
-        print()
+
+
+        
+        
         
         pearson, p=stats.pearsonr(multiplier1,multiplier2)
         print(name_of[regions[i]],'vs',name_of[regions[j]],'p=',round(p,2),round(pearson,2)) 
@@ -225,5 +232,5 @@ ax.spines['bottom'].set_visible(False)
 plt.imshow(Values,cmap='Greys',vmax=1.5,vmin=0,origin='lower') # displays in color
 
 
-plt.savefig('../figures/supplementary_correlation_figure.pdf',format='pdf',dpi=300,bbox_inches='tight')
+plt.savefig('../figures/figureS3.pdf',format='pdf',dpi=300,bbox_inches='tight')
 

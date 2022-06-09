@@ -25,9 +25,9 @@ end_date=(datetime.strptime(end_date, '%d %B %Y')-time_zero).days
 ###########################################
 
 # Get list of dates for axes 
-dates=['01/0'+str(i)+'/2020' for i in range(9,10)]+['01/'+str(i)+'/2020' for i in range(10,13)]
-dates=dates+['01/0'+str(i)+'/2021' for i in range(1,10)]+['01/'+str(i)+'/2021' for i in range(10,13)]
-dates=dates+['01/0'+str(i)+'/2022' for i in range(1,5)]
+dates=['01/0'+str(i)+'/2020' for i in range(11,10,2)]+['01/'+str(i)+'/2020' for i in range(11,13,2)]
+dates=dates+['01/0'+str(i)+'/2021' for i in range(1,10,2)]+['01/'+str(i)+'/2021' for i in range(11,13,2)]
+dates=dates+['01/0'+str(i)+'/2022' for i in range(1,6,2)]
 
 dates_words=[datetime.strptime(str(d), '%d/%m/%Y').strftime('%b') for d in dates]
 dates_numerical=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in dates]
@@ -102,7 +102,7 @@ for age in name_of:
    
     if i==4: 
         plt.ylabel('Percentage of infections',size=fs)
-        plt.text(100,200,'A',size=20)
+        plt.text(40,200,'A',size=20)
           
 
     reporting_multiplier=data['reporting_multiplier_'+age]
@@ -195,7 +195,7 @@ for region in regions:
    
     if i==7: 
         plt.ylabel('Percentage of infections',size=fs)
-        plt.text(100,200,'B',size=20)
+        plt.text(40,200,'B',size=20)
 
     # get index of sep 1
     date=data['date_'+region]
@@ -221,5 +221,5 @@ for region in regions:
     ax.fill_between(date,reporting_multiplier['Rate'][start:end],reporting_multiplier_vax['Rate'][start:end],color='c',alpha=0.2,linewidth=1,label=leg2)
     
 
-plt.savefig('../figures/Supplementary_figure_vax.pdf',format='pdf',dpi=300,bbox_inches='tight')
+plt.savefig('../figures/figureS2.pdf',format='pdf',dpi=300,bbox_inches='tight')
 

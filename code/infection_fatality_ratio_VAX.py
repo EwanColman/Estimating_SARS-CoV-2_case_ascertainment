@@ -213,5 +213,5 @@ for age in name_of:
 
 
 
-plt.savefig('../figures/Supplementary_figure_IFR.pdf',format='pdf',dpi=300,bbox_inches='tight')
+plt.savefig('../figures/figureS4.pdf',format='pdf',dpi=300,bbox_inches='tight')
 

@@ -33,7 +33,7 @@ regions=['South West',
          'Northern Ireland']
 
 fs=12
-offset=0.2
+offset=0.13
 
 fig=plt.figure(figsize=(12,10))
 
@@ -56,21 +56,27 @@ for i,row in df.iloc[0:7].iterrows():
         
     ax = fig.add_subplot(gs[0,0])
     ax.tick_params(length=0)
-    plt.plot([row['Wild_Lower'],row['Wild_Upper']],[7-i+offset,7-i+offset],c='k',linewidth=0.5)
-    plt.scatter([row['Wild_Rate']],[7-i+offset],color='k',facecolors='k',marker='o', label=lab1)
+    
+    h=7-i-2*offset
+    plt.plot([row['Wild_Lower'],row['Wild_Upper']],[h,h],c='k',linewidth=0.5)
+    plt.scatter([row['Wild_Rate']],[h],color='k',facecolors='k',marker='o', label=lab1)
     y_loc.append(7-i)
     
-    plt.plot([row['Alpha_Lower'],row['Alpha_Upper']],[7-i,7-i],c='b',linewidth=0.5,zorder=0)
-    plt.scatter([row['Alpha_Rate']],[7-i],color='b',facecolors='w',marker='s',label=lab2,zorder=1)
-    
-    plt.plot([row['Delta_Lower'],row['Delta_Upper']],[7-i-offset,7-i-offset],c='r',linewidth=0.5,zorder=0)
-    plt.scatter([row['Delta_Rate']],[7-i-offset],color='r',facecolors='w',marker='^',label=lab3,zorder=2)
+    h=7-i-offset
+    plt.plot([row['Alpha_Lower'],row['Alpha_Upper']],[h,h],c='b',linewidth=0.5,zorder=0)
+    plt.scatter([row['Alpha_Rate']],[h],color='b',facecolors='w',marker='s',label=lab2,zorder=1)
 
-    plt.plot([row['BA.1_Lower'],row['BA.1_Upper']],[7-i-offset,7-i-offset],c='g',linewidth=0.5,zorder=0)
-    plt.scatter([row['BA.1_Rate']],[7-i-offset],color='g',facecolors='w',marker='v',label=lab4,zorder=2)
+    h=7-i 
+    plt.plot([row['Delta_Lower'],row['Delta_Upper']],[h,h],c='r',linewidth=0.5,zorder=0)
+    plt.scatter([row['Delta_Rate']],[h],color='r',facecolors='w',marker='^',label=lab3,zorder=2)
+
+    h=7-i+2*offset
+    plt.plot([row['BA.1_Lower'],row['BA.1_Upper']],[h,h],c='g',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.1_Rate']],[h],color='g',facecolors='w',marker='v',label=lab4,zorder=2)
     
-    plt.plot([row['BA.2_Lower'],row['BA.2_Upper']],[7-i-offset,7-i-offset],c='m',linewidth=0.5,zorder=0)
-    plt.scatter([row['BA.2_Rate']],[7-i-offset],color='m',facecolors='w',marker='<',label=lab5,zorder=2)
+    h=7-i+offset
+    plt.plot([row['BA.2_Lower'],row['BA.2_Upper']],[h,h],c='m',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.2_Rate']],[h],color='m',facecolors='w',marker='<',label=lab5,zorder=2)
     
     
     
@@ -91,21 +97,27 @@ for i,row in df.iloc[7:19].iterrows():
         
     ax = fig.add_subplot(gs[1,0]) 
     ax.tick_params(length=0)
-    plt.plot([row['Wild_Lower'],row['Wild_Upper']],[19-i+offset,19-i+offset],c='k',linewidth=0.5)
-    plt.scatter([row['Wild_Rate']],[19-i+offset],color='k',facecolors='k',marker='o', label=lab1)
+    
+    h=19-i-2*offset
+    plt.plot([row['Wild_Lower'],row['Wild_Upper']],[h,h],c='k',linewidth=0.5)
+    plt.scatter([row['Wild_Rate']],[h],color='k',facecolors='k',marker='o', label=lab1)
     y_loc.append(19-i)
     
-    plt.plot([row['Alpha_Lower'],row['Alpha_Upper']],[19-i,19-i],c='b',linewidth=0.5,zorder=0)
-    plt.scatter([row['Alpha_Rate']],[19-i],color='b',facecolors='w',marker='s',label=lab2,zorder=1)
+    h=19-i-offset
+    plt.plot([row['Alpha_Lower'],row['Alpha_Upper']],[h,h],c='b',linewidth=0.5,zorder=0)
+    plt.scatter([row['Alpha_Rate']],[h],color='b',facecolors='w',marker='s',label=lab2,zorder=1)
     
-    plt.plot([row['Delta_Lower'],row['Delta_Upper']],[19-i-offset,19-i-offset],c='r',linewidth=0.5,zorder=0)
-    plt.scatter([row['Delta_Rate']],[19-i-offset],color='r',facecolors='w',marker='^',label=lab3,zorder=2)
+    h=19-i
+    plt.plot([row['Delta_Lower'],row['Delta_Upper']],[h,h],c='r',linewidth=0.5,zorder=0)
+    plt.scatter([row['Delta_Rate']],[h],color='r',facecolors='w',marker='^',label=lab3,zorder=2)
 
-    plt.plot([row['BA.1_Lower'],row['BA.1_Upper']],[19-i-offset,19-i-offset],c='g',linewidth=0.5,zorder=0)
-    plt.scatter([row['BA.1_Rate']],[19-i-offset],color='g',facecolors='w',marker='v',label=lab4,zorder=2)
+    h=19-i+2*offset
+    plt.plot([row['BA.1_Lower'],row['BA.1_Upper']],[h,h],c='g',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.1_Rate']],[h],color='g',facecolors='w',marker='v',label=lab4,zorder=2)
     
-    plt.plot([row['BA.2_Lower'],row['BA.2_Upper']],[19-i-offset,19-i-offset],c='m',linewidth=0.5,zorder=0)
-    plt.scatter([row['BA.2_Rate']],[19-i-offset],color='m',facecolors='w',marker='<',label=lab5,zorder=2)
+    h=19-i+offset
+    plt.plot([row['BA.2_Lower'],row['BA.2_Upper']],[h,h],c='m',linewidth=0.5,zorder=0)
+    plt.scatter([row['BA.2_Rate']],[h],color='m',facecolors='w',marker='<',label=lab5,zorder=2)
     
     
     if not i==18:

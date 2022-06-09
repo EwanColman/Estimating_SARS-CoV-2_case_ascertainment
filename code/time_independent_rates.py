@@ -148,7 +148,7 @@ S_lfd=[np.mean(df['median'].tolist()[i:i+10]) for i in range(0,300,10)]
 
 
 ######### COMMENT THIS OUT #######################
-# for sensitivity analysis multiply by 1/S_pcr
+#for sensitivity analysis multiply by 1/S_pcr
 #rescale_factor=1/max(S_pcr)
 #S_pcr=[s*rescale_factor for s in S_pcr]
 #S_lfd=[s*rescale_factor for s in S_lfd]

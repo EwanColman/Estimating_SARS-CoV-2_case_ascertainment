@@ -402,7 +402,7 @@ output_data['date']=days
 
 pk.dump(output_data,open('../pickles/reporting_rates_(age)_VAX.p','wb'))
    
-plt.savefig('../figures/time_dependent_multiplier_ages.png',format='png', bbox_inches='tight',dpi=256)
+#plt.savefig('../figures/time_dependent_multiplier_ages.png',format='png', bbox_inches='tight',dpi=256)
 
 
 

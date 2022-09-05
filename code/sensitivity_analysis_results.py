@@ -11,8 +11,9 @@ import numpy as np
 
 df=pd.read_csv('../output/time_independent_rates.csv')
 
-df2=pd.read_csv('../output/time_independent_rates_(higher_sensitivity).csv')
+#df2=pd.read_csv('../output/time_independent_rates_(higher_sensitivity).csv')
 #df2=pd.read_csv('../output/time_independent_rates_(longer_delay).csv')
+df2=pd.read_csv('../output/time_independent_rates_(all_LFD).csv')
 
 
 

@@ -96,6 +96,13 @@ df=pd.read_csv('../processed_data/England_daily_data.csv')
 SGTF_proportion=df['SGTF_proportion'].tolist()
 LFD_proportion=df['LFD_proportion'].tolist()
 
+###### COMENT THIS OUT ##########
+# what if was 100% LFD?
+LFD_proportion=[1 for i in LFD_proportion]
+#################################
+
+
+
 
 ### get all the proportions for each variant across time
 variant_proportion={}
@@ -406,6 +413,7 @@ for region in population_of:
           
 pk.dump(adjusted_cases,open('../pickles/adjusted_cases.p','wb'))    
 
-pd.DataFrame(output).to_csv('../output/time_independent_rates.csv',index=False)
+#pd.DataFrame(output).to_csv('../output/time_independent_rates.csv',index=False)
 #pd.DataFrame(output).to_csv('../output/time_independent_rates_(higher_sensitivity).csv',index=False)
 #pd.DataFrame(output).to_csv('../output/time_independent_rates_(longer_delay).csv',index=False)
+pd.DataFrame(output).to_csv('../output/time_independent_rates_(all_LFD).csv',index=False)

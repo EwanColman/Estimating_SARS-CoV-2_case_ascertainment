@@ -116,128 +116,122 @@ for j in range(testable_period):
 
 
 #### SURVEILLANCE ########
-ons_df=pd.read_csv(folder+'/'+region+'_surveillance_1k.csv',sep=',')
-    
-    # add a new column with header days since Mar1
-    time_in_days=[(datetime.strptime(str(d), '%d/%m/%Y')-time_zero).days for d in ons_df['Date'].tolist()]
-    
-    # add it to the dataframe
-    ons_df['days_since_march1']=time_in_days
-    # needs to be in order earliest to latest
-    ons_df=ons_df.sort_values('days_since_march1',ascending=True)
-    # remove days when the rate is 0
-    ons_df=ons_df[ons_df['Rate']>0]
-    
-    ONS_day=ons_df['days_since_march1'].tolist()
-    
-    ###### CASES ##########
-    df=pd.read_csv('../processed_data/'+region+'_daily_data.csv')
-    #  drop last one (remove this is not needed)
-    cases=df['cases'].tolist()
-    #time_in_days=df['Days_since_March1'].tolist()
-    SGTF_proportion=df['SGTF_proportion'].tolist()
-    
-    # make the fnction and add some 0s to the end
-    C=cases+[0 for i in range(100)]
-    
-    theta_times_I=[]
-    for t in range(len(cases)):
-        Y_pcr=sum([C[t+j]*P_pcr[j-delta]*S_pcr[j] for j in range(delta,testable_period)])
-        Y_lfd=sum([C[t+j]*P_lfd[j]*S_lfd[j] for j in range(testable_period)])
-        Y=(1-LFD_proportion[t])*Y_pcr+LFD_proportion[t]*Y_lfd
-        theta_times_I.append(Y)
+ons_df=pd.read_csv('../synthetic_data/surveillance.csv',sep=',')
    
-    ############################################
-    
-    new_cases=[]
-    
-    # estimate the number of test-positives
-    for t in ONS_day:
-        # j is the time since exposure
-        estimate=sum([theta_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
-        
-        new_cases.append(estimate)
-    
-    
-    
-    # 200 resamplings
-    for i in range(200):
-        print(i)
-        # the resampled rate
-        rate=[]
-        
-        for j,row in ons_df.iterrows():
-            # calculate mean and sd for that day
-            #print(row)
-            mu=row['Rate']
-            sigma=(row['Upper']-row['Lower'])/(2*1.96)
-            # sample from distribution for new rate
-            rate.append(max(0,np.random.normal(mu, sigma)))
-    
-    
+# convert data frame to lists for plotting
+rate=ons_df.reset_index()
 
+ONS_day=ons_df['Date'].tolist()
     
-        first_guess=[]
-        for j in range(len(new_cases)):
-        
-            if rate[j]>0:
-                first_guess.append(min(100,100*100*new_cases[j]/(population_of[region]*rate[j]))) 
-            else:
-                first_guess.append(100)
-    
-        weeks=int(len(cases)/7)
-        #### calculate multiplier for every time point ##########
-        reporting_multiplier=[]
-    
-        
-        # initial guess has zeros at the start followed by the interpolated first estimate
-        initial=[0 for i in range(ONS_day[0])]+interpolate(ONS_day,first_guess)
-        # add the final value enough times to make it up-to-date with case data + the time shift
-        initial=initial+[initial[-1] for i in range(len(initial),len(cases)+9)]
-        # take weekly time points, shifted 9 days to map to date of exposure (approximately)
-        initial=[initial[7*i+9] for i in range(weeks)]
-        
-        # optimization using scipy, define bounds 
-        bnds = tuple([(0, None) for i in range(weeks)])
-        # do the optimization (can try different methods)
-        res = optimize.minimize(f,initial, method='COBYLA', bounds=bnds, options={'disp': False})
-        # extract the result
-        reporting_multiplier = [r for r in res['x']]  
-        
-        # day estimate is for
-        days=[i*7 for i in range(weeks)]
-        
-        theta=reporting_multiplier
-        time=[i*7 for i in range(len(theta))]
-        daily_theta=[0 for i in range(time[0])]
-        daily_theta=daily_theta+interpolate(time,list(theta))
-        while len(daily_theta)<len(cases):
-            daily_theta.append(daily_theta[-1])
-        
-        I=[]
-
-        theta=reporting_multiplier
-        time=[i*7 for i in range(len(theta))]
-        daily_theta=[0 for i in range(time[0])]
-        daily_theta=daily_theta+interpolate(time,list(theta))
-        while len(daily_theta)<len(cases):
-            daily_theta.append(daily_theta[-1])
-    
-        
-        I=[0 for i in range(ONS_day[0])]
-        I=I+[100*100*theta_times_I[t]/(daily_theta[t]*population_of[region]) for t in range(ONS_day[0],len(theta_times_I))]
-
-        #print(I)
-        #print()
-        output_data['reporting_multiplier_'+region].append(reporting_multiplier)
-        #output_data['variant_proportion_'+region]=new_variant_proportion
-        output_data['incidence_'+region].append(I)
-    
-    # dates for the region's data  
-    output_data['date_'+region]=days
+###### CASES ##########
+df=pd.read_csv('../synthetic_data/cases.csv')
 
 
+cases=df['cases'].tolist()
+case_time_in_days=df['Date'].tolist()
+
+   
+C=cases+[0 for i in range(100)]
     
-pk.dump(output_data,open('../pickles/reporting_rates_(region)_200.p','wb'))
+theta_times_I=[]
+for t in range(len(cases)):
+    Y_pcr=sum([C[t+j]*P_pcr[j-delta]*S_pcr[j] for j in range(delta,testable_period)])
+    #Y_lfd=sum([C[t+j]*P_lfd[j]*S_lfd[j] for j in range(testable_period)])
+    #Y=(1-LFD_proportion[t])*Y_pcr+LFD_proportion[t]*Y_lfd
+    theta_times_I.append(Y_pcr)
+   
+############################################
+
+new_cases=[]
+
+# estimate the number of test-positives
+for t in ONS_day:
+    # j is the time since exposure
+    estimate=sum([theta_times_I[t-j]*S_pcr[j] for j in range(testable_period)])
+    
+    new_cases.append(estimate)
+
+output_data={}
+output_data['reporting_multiplier']=[] 
+output_data['incidence']=[]
+
+# 200 resamplings
+for i in range(200):
+    print(i)
+    # the resampled rate
+    rate=[]
+    
+    for j,row in ons_df.iterrows():
+        # calculate mean and sd for that day
+        #print(row)
+        mu=row['Rate']
+        sigma=(row['Upper']-row['Lower'])/(2*1.96)
+        # sample from distribution for new rate
+        rate.append(max(0,np.random.normal(mu, sigma)))
+
+
+
+
+    first_guess=[]
+    for j in range(len(new_cases)):
+    
+        if rate[j]>0:
+            first_guess.append(min(100,100*100*new_cases[j]/(population*rate[j]))) 
+        else:
+            first_guess.append(100)
+
+    weeks=int(len(cases)/7)
+    #### calculate multiplier for every time point ##########
+    reporting_multiplier=[]
+
+    
+    # initial guess has zeros at the start followed by the interpolated first estimate
+    initial=[0 for i in range(ONS_day[0])]+interpolate(ONS_day,first_guess)
+    # add the final value enough times to make it up-to-date with case data + the time shift
+    initial=initial+[initial[-1] for i in range(len(initial),len(cases)+9)]
+    # take weekly time points, shifted 9 days to map to date of exposure (approximately)
+    initial=[initial[7*i+9] for i in range(weeks)]
+    
+    # optimization using scipy, define bounds 
+    bnds = tuple([(0, None) for i in range(weeks)])
+    # do the optimization (can try different methods)
+    res = optimize.minimize(f,initial, method='COBYLA', bounds=bnds, options={'disp': False})
+    # extract the result
+    reporting_multiplier = [r for r in res['x']]  
+    
+    # day estimate is for
+    days=[i*7 for i in range(weeks)]
+    
+    theta=reporting_multiplier
+    time=[i*7 for i in range(len(theta))]
+    daily_theta=[0 for i in range(time[0])]
+    daily_theta=daily_theta+interpolate(time,list(theta))
+    while len(daily_theta)<len(cases):
+        daily_theta.append(daily_theta[-1])
+    
+    I=[]
+
+    theta=reporting_multiplier
+    time=[i*7 for i in range(len(theta))]
+    daily_theta=[0 for i in range(time[0])]
+    daily_theta=daily_theta+interpolate(time,list(theta))
+    while len(daily_theta)<len(cases):
+        daily_theta.append(daily_theta[-1])
+
+    
+    I=[0 for i in range(ONS_day[0])]
+    I=I+[100*100*theta_times_I[t]/(daily_theta[t]*population) for t in range(ONS_day[0],len(theta_times_I))]
+
+    #print(I)
+    #print()
+    output_data['reporting_multiplier'].append(reporting_multiplier)
+    #output_data['variant_proportion_'+region]=new_variant_proportion
+    output_data['incidence'].append(I)
+
+# dates for the region's data  
+output_data['date']=days
+
+
+pk.dump(output_data,open('../pickles/reporting_rates_(synthetic)_200.p','wb'))
 
 

@@ -23,10 +23,10 @@ N=S[-1]+I[-1]+R[-1]
 
 R0_changes={(0,250):1.2,
             (250,400):1,
-            (400,450):1.8,
+            (400,450):2,
             (450,500):1,
-            (500,550):2,
-            (550,600):0.7}
+            (500,550):2.5,
+            (550,600):1}
 
 R0=[]
 for interval in R0_changes:
@@ -42,16 +42,20 @@ for t in range(iterations):
     prev_I=I[-1]
     prev_R=R[-1]
     
-    R_rand=normal(R0[t],0.2)
+    R_rand=normal(R0[t],0)
     
     print((1/infectious_period)*R_rand*prev_S*prev_I/N)
     
     # prev_S*prev_I trials with probability (1/infectious_period)*R0*/N
-    infections=poisson(max(0,(1/infectious_period)*R_rand*prev_S*prev_I/N))
+    #infections=poisson(max(0,(1/infectious_period)*R_rand*prev_S*prev_I/N))
+    infections=round((1/infectious_period)*R_rand*prev_S*prev_I/N)
     
-    transitions=poisson(max(0,(1/latent_period)*prev_E))
     
-    recoveries=poisson(max(0,(1/infectious_period)*prev_I))
+    #transitions=poisson(max(0,(1/latent_period)*prev_E))
+    transitions=round((1/latent_period)*prev_E)
+    
+    #recoveries=poisson(max(0,(1/infectious_period)*prev_I))
+    recoveries=round((1/infectious_period)*prev_I)
     
     next_S=prev_S-infections
     next_E=prev_E+infections-transitions
@@ -94,7 +98,7 @@ sigma=np.log(dispersion)
 mu=np.log(mean)    
 
 incubation_probability=[]
-for i in range(len(S)):
+for i in range(testable_period):
     x=i+1
     u=(1/2)*(1+erf((np.log(x)-mu)/(sigma*(2**(1/2)))))
     x=i
@@ -130,7 +134,7 @@ plt.fill_between(range(0,iterations,7),lower,upper,alpha=0.3)
 # for the case numbers project the infections forward to the time of test and 
 # account for under ascertainment
 
-test_seeking_rate=[0.5,0.5,0.5,0.5,0.5,0.3,0.3]
+test_seeking_rate=[0.4,0.4,0.4,0.4,0.4,0.3,0.3]
 delta=1
 
 cases=[0 for i in range(iterations)]
@@ -145,14 +149,16 @@ for x in range(iterations):
             # slide up through incubation_probability distribution 
             slide=0
             incubation_period=0
-            while r>slide:
+            while r>slide and incubation_period+delta+1<testable_period:
+                
                 slide=slide+incubation_probability[incubation_period]
                 incubation_period=incubation_period+1
             
             # total time includes a delay
             time_to_test=incubation_period+delta
+
             # do they get a positive
-            if random()<S[time_to_test] and x+time_to_test<len(cases):
+            if random()<S_pcr[time_to_test] and x+time_to_test<len(cases):
                 # then add them to cases
                 cases[x+time_to_test]=cases[x+time_to_test]+1
 

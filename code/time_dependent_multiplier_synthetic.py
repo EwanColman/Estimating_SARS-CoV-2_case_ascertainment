@@ -222,7 +222,7 @@ plt.plot(reporting_multiplier['Rate'])
 
 # import the true incidence
 ###### INCIDENCE ##########
-df=pd.read_csv('../synthetic_data/Incidence.csv')
+df=pd.read_csv('../synthetic_data/incidence.csv')
 
 incidence=df['Infections']
 

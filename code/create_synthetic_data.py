@@ -1,6 +1,7 @@
 
 import matplotlib.pyplot as plt
 from numpy.random import poisson
+from numpy.random import binomial
 from numpy.random import normal
 from numpy.random import random
 import numpy as np
@@ -118,9 +119,9 @@ rate=[]
 upper=[]
 lower=[]
 for day in range(0,iterations,7):
-    test_positives=sum(poisson(new_infections[day-t]*p)*S_pcr[t] for t in range(min(30,day)))
+    test_positives=sum(binomial(new_infections[day-t],p*S_pcr[t]) for t in range(min(30,day)))
 
-    sd=(new_infections[day-t]*p)**(1/2)
+    sd=test_positives**(1/2)
 
     rate.append(100*test_positives/sample_size)
     upper.append(100*(test_positives+1.96*sd)/sample_size)

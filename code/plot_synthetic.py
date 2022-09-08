@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pickle as pk
-
+import pandas as pd
+from scipy import stats
 
 output_data=pk.load(open('../pickles/reporting_rates_(synthetic)_200.p','rb'))
 
@@ -8,7 +9,7 @@ days=output_data['date']
 
 fs=15
 
-fig=plt.figure()
+fig=plt.figure(figsize=(10,5))
 #ax=fig.add_subplot(3,3,i) 
 ax = fig.add_subplot(111)
 
@@ -71,7 +72,43 @@ ax2.plot(range(len(I)),I,color='g',linewidth=0.75,label='Daily new infections')
 
 # fake plot
 #ax.fill_between([0,0],[0,0],[0,0],color='m',linewidth=0,edgecolor='k',label=leg2)
-ax.legend(loc=2,prop={'size':fs},frameon=False,bbox_to_anchor=(1.2, 0.5))
-ax2.legend(loc=2,ncol=2,prop={'size':fs},frameon=False,bbox_to_anchor=(1.2, 0.2))
+ax.legend(loc=2,prop={'size':fs},frameon=False,bbox_to_anchor=(0.28, 1))
+ax2.legend(loc=2,ncol=2,prop={'size':fs},frameon=False,bbox_to_anchor=(0.28, 0.83))
+
+ax.set_xlabel('Time (days)',size=fs)
+
+plt.savefig('../figures/synthetic_results.pdf',format='pdf',dpi=256,bbox_inches='tight')
+
+
+
+
+plt.figure(figsize=(5,3))
+
+df=pd.read_csv('../synthetic_data/incidence.csv')
+
+plt.plot(df['Infections'].tolist(),':m',label='Underlying incidence')
+plt.plot(I,label='Reconstructed incidence')
+plt.xlabel('Time (days)')
+plt.ylabel('% of population')
+plt.legend()
+
+plt.savefig('../figures/incidence_comparison.pdf',format='pdf',dpi=256,bbox_inches='tight')
+
+####################
+
+# correlation analysis
+x=reporting_multiplier['Rate']
+y=[incidence['Rate'][7*i] for i in range(len(x))]
+
+ons_df=pd.read_csv('../synthetic_data/surveillance.csv',sep=',')
+
+y=[ons_df['Rate'].tolist()[i] for i in range(len(x))]
+print(len(x),len(y))
+pearson, p=stats.pearsonr(x,y)
+
+plt.figure()
+plt.scatter(x,y)
+print(pearson,p)
+
 
 

@@ -27,7 +27,7 @@ R0_changes={(0,250):1.2,
             (400,450):2,
             (450,500):1,
             (500,550):2.5,
-            (550,600):1}
+            (550,600):2.5}
 
 R0=[]
 for interval in R0_changes:
@@ -75,10 +75,6 @@ for t in range(iterations):
 # plt.plot(I,label='I')
 # plt.plot(R,label='R')
 
-plt.figure()
-plt.plot(new_infections)
-#plt.legend()
-# project
 
 testable_period=30
 #### Probability of positive test #################
@@ -113,8 +109,10 @@ for i in range(testable_period):
 # find the number of days since their infection
 # there are new_infections[t] people who were infected t days ago 
 # poisson with mean new_infections[t]*p 
-sample_size=10000
-p=sample_size/N
+#sample_size=10000
+#p=sample_size/N
+p=0.0027
+sample_size=p*N
 rate=[]
 upper=[]
 lower=[]
@@ -127,15 +125,11 @@ for day in range(0,iterations,7):
     upper.append(100*(test_positives+1.96*sd)/sample_size)
     lower.append(100*(test_positives-1.96*sd)/sample_size)
 
-plt.figure()
-plt.plot(range(0,iterations,7),rate)
-plt.fill_between(range(0,iterations,7),lower,upper,alpha=0.3)
-
 
 # for the case numbers project the infections forward to the time of test and 
 # account for under ascertainment
 
-test_seeking_rate=[0.4,0.4,0.4,0.4,0.4,0.3,0.3]
+test_seeking_rate=[0.4,0.4,0.4,0.4,0.4,0.4,0.4]
 delta=1
 
 cases=[0 for i in range(iterations)]
@@ -163,12 +157,46 @@ for x in range(iterations):
                 # then add them to cases
                 cases[x+time_to_test]=cases[x+time_to_test]+1
 
-plt.figure()
-plt.plot(cases)
+
 
 incidence=[100*i/N for i in new_infections]
 
 pd.DataFrame({'Date':range(iterations),'cases':cases}).to_csv('../synthetic_data/cases.csv')
 pd.DataFrame({'Date':range(iterations),'Infections':incidence}).to_csv('../synthetic_data/incidence.csv')
 pd.DataFrame({'Date':range(0,iterations,7),'Rate':rate,'Upper':upper,'Lower':lower}).to_csv('../synthetic_data/surveillance.csv')
+
+### Plotting
+
+fig=plt.figure(figsize=(11,2))
+plt.subplots_adjust(wspace=0.4)
+
+ax = fig.add_subplot(1,3,1)
+ax.plot([i/1000 for i in new_infections])
+ax.set_xlabel('Time (days)')
+ax.set_ylabel('Infections (thousands)')
+ax.set_title('Synthetic underlying incidence')
+ax.text(-0.2,1.1,'A',transform=ax.transAxes,size=15)
+
+
+ax = fig.add_subplot(1,3,2)
+ax.plot([c/1000 for c in cases])
+ax.set_xlabel('Time (days)')
+ax.set_ylabel('Cases (thousands)')
+ax.set_title('Synthetic diagnostic data')
+ax.text(-0.2,1.1,'B',transform=ax.transAxes,size=15)
+
+
+ax = fig.add_subplot(1,3,3)
+ax.plot(range(0,iterations,7),rate,linewidth=0.5)
+ax.fill_between(range(0,iterations,7),lower,upper,color='k',alpha=0.3)
+ax.set_xlabel('Time (days)')
+ax.set_ylabel('% testing positive')
+ax.set_title('Synthetic surveillance data')
+ax.text(-0.2,1.1,'C',transform=ax.transAxes,size=15)
+
+
+plt.savefig('../figures/synthetic_data.pdf',format='pdf',dpi=256,bbox_inches='tight')
+
+
+
 
